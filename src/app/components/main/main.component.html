@@ -1,0 +1,88 @@
+<div class="container">
+    <input id="menu__toggle" type="checkbox" />
+    <label class="menu__btn" for="menu__toggle">
+      <span></span>
+    </label>
+    <nav class="sidebar" [ngClass]="{'close': isSidebarClosed}">
+      <header>
+        <div class="image-text">
+          <div class="image">
+            <span class="name">CPA </span>
+          </div>
+          <div class="text logo-text">
+            <span class="name"> Workflow <br> Management</span>
+          </div>
+        </div>
+        <i class='fa-solid fa-chevron-right toggle' (click)="toggleSidebar()"></i>
+      </header>
+      <div class="menu-bar">
+        <div class="menu">
+          <ul class="menu-links">
+            <li class="nav-link" routerLinkActive="active">
+              <a routerLink="dashboard">
+                <i class="fa-solid fa-chart-pie icon"></i>
+                <span class="text nav-text">Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-link" routerLinkActive="active">
+              <a routerLink="task">
+                <i class="fa-solid fa-calendar-check icon"></i>
+                <span class="text nav-text">Task</span>
+              </a>
+            </li>
+
+            <li class="nav-link" routerLinkActive="active">
+              <a routerLink="staff">
+                <i class="fas fa-clipboard-user icon"></i>
+                <span class="text nav-text">Staff</span>
+              </a>
+            </li>
+            <li class="nav-link" routerLinkActive="active">
+              <a routerLink="clients">
+                <i class="fas fa-user-tie icon"></i>
+                <span class="text nav-text">Clients</span>
+              </a>
+            </li>
+            <li class="nav-link" routerLinkActive="active">
+              <a routerLink="reports">
+                <i class="fa-solid fa-chart-line icon"></i>
+                <span class="text nav-text">Reports</span>
+              </a>
+            </li>
+
+
+            <li class="nav-link">
+              <a (click)="logout()">
+                <i class="fa-solid fa-arrow-right-from-bracket icon"></i>
+                <span class="text nav-text">Sign Out</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="bottom-content">
+          <li>
+          </li>
+        </div>
+      </div>
+    </nav>
+    <section class="home">
+        <div class="header d-flex justify-content-between align-items-center">
+            <h2></h2>
+            <div class="header_side d-flex gap-2 align-items-center">
+                <div class="notification">
+                    <i class="fa-regular fa-bell"></i>
+                </div>
+                <div class="user d-flex align-items-center gap-2">
+                    <div class="user_image">
+                        <img src="../../../assets/img/user_placeholder.jpg" alt="">
+                    </div>
+                    <div class="user_info">
+                        <h4>{{user.name}}</h4>
+                        <h6>{{user.role}}</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <router-outlet></router-outlet>
+    </section>
+  </div>

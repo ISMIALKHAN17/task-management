@@ -1,0 +1,157 @@
+<div class="globel_wrap">
+    <div class="loading_wrap" *ngIf="loading">
+        <span class="loader"></span>
+       </div>
+    <div class="globel_header d-flex justify-content-between align-items-center">
+        <h3>Task</h3>
+        <button class="theme_btn" (click)="open(addTask)"><i class="fas fa-plus"></i> add  </button>
+    </div>
+    <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Due Date</th>
+            <th scope="col">Client Name</th>
+            <th scope="col">Assigned to</th>
+            <th scope="col">Description</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let task of tasks; index as i">
+            <td>{{ i + 1 }}</td>
+            <td>{{ task.name }}</td>
+            <td>{{ formatDate(task.dueDate) }}</td>
+            <td>{{ task.client.name }}</td>
+            <td>{{ task.user.name }}</td>
+            <td>{{ task.description.length > 20 ? task.description.slice(0, 20) + '...' : task.description }}</td>
+            <td>
+                <ul class="actions m-0 d-flex  gap-2">
+                    <li><i class="far fa-eye" data-toggle="tooltip" title="View"></i></li>
+                    <li><i class="fas fa-trash-alt" (click)="deleteTask(task.id)" data-toggle="tooltip" title="Delete"></i></li>
+                </ul>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+
+
+</div>
+
+
+<ng-template #addTask let-c="close" let-d="dismiss">
+    <div class="addModal">
+        <div class="modalHeader d-flex justify-content-between align-items-center">
+            <h4 class="m-0">Add new task</h4>
+            <i (click)="d('Cross click')" class="far fa-times-circle"></i>
+        </div>
+        <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+            <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="name">Task Name:</label>
+                    <input type="text" id="name" formControlName="name" class="form-control"
+                      [ngClass]="{ 'is-invalid': taskForm.get('name').invalid && taskForm.get('name').touched }">
+                    <div class="invalid-feedback" *ngIf="taskForm.get('name').invalid && taskForm.get('name').touched">
+                      Task Name is required.
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="dueDate">Due Date:</label>
+                    <input type="date" id="dueDate" formControlName="dueDate" class="form-control"
+                      [ngClass]="{ 'is-invalid': taskForm.get('dueDate').invalid && taskForm.get('dueDate').touched }">
+                    <div class="invalid-feedback" *ngIf="taskForm.get('dueDate').invalid && taskForm.get('dueDate').touched">
+                      Due Date is required.
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group mb-2">
+                    <label for="client_id">Client Name:</label>
+                    <select id="client_id" formControlName="client_id" class="form-control"
+                      [ngClass]="{ 'is-invalid': taskForm.get('client_id').invalid && taskForm.get('client_id').touched }">
+                      <option value="select" disabled selected>Select Client</option>
+                      <option *ngFor="let clientName of clients" [value]="clientName.id">{{ clientName.name }}</option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="taskForm.get('client_id').invalid && taskForm.get('client_id').touched">
+                      Client Name is required.
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group mb-2">
+                    <label for="user_id">Staff Name:</label>
+                    <select id="user_id" formControlName="user_id" class="form-control"
+                      [ngClass]="{ 'is-invalid': taskForm.get('user_id').invalid && taskForm.get('user_id').touched }">
+                      <option value="select" disabled selected>Select Staff</option>
+                      <option *ngFor="let staffName of staff" [value]="staffName.id">{{ staffName.name }}</option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="taskForm.get('user_id').invalid && taskForm.get('user_id').touched">
+                      Staff Name is required.
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group mb-2">
+                      <label for="repeatTask">Repeat Task:</label>
+                      <select id="repeatTask" formControlName="repeatTask" class="form-control"
+                        [ngClass]="{ 'is-invalid': taskForm.get('repeatTask').invalid && taskForm.get('repeatTask').touched }">
+                        <option value="select" disabled selected>Select Repeat Interval</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Biweekly</option>
+                        <option value="monthly">Monthly</option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="taskForm.get('repeatTask').invalid && taskForm.get('repeatTask').touched">
+                        Repeat Task selection is required.
+                      </div>
+                    </div>
+                  </div>
+
+                <div class="col-md-12">
+                  <div class="form-group mb-2">
+                    <label for="description">Description:</label>
+                    <textarea id="description" formControlName="description" class="form-control"
+                      [ngClass]="{ 'is-invalid': taskForm.get('description').invalid && taskForm.get('description').touched }"></textarea>
+                    <div class="invalid-feedback" *ngIf="taskForm.get('description').invalid && taskForm.get('description').touched">
+                      Description is required.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-12">
+                  <div class="form-group mb-2">
+                    <label for="memo">Memo:</label>
+                    <textarea id="memo" formControlName="memo" class="form-control"
+                      [ngClass]="{ 'is-invalid': taskForm.get('memo').invalid && taskForm.get('memo').touched }"></textarea>
+                    <div class="invalid-feedback" *ngIf="taskForm.get('memo').invalid && taskForm.get('memo').touched">
+                      Memo is required.
+                    </div>
+                  </div>
+                </div>
+
+
+
+                <div class="col-md-12">
+                  <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+              </div>
+
+
+          </form>
+
+    </div>
+</ng-template>
+
+<ng-template #showTask let-c="close" let-d="dismiss">
+  <div class="addModal">
+    <div class="modalHeader d-flex justify-content-between align-items-center">
+        <h4 class="m-0">Add new task</h4>
+        <i (click)="d('Cross click')" class="far fa-times-circle"></i>
+    </div>
+    </div>
+</ng-template>
+
