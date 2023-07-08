@@ -21,6 +21,7 @@ export class TaskComponent {
   taskView:any = false
   memos:any
   memoForm:any
+  chatLoading = true
 
   constructor(private req:RequestService , private formBuilder: FormBuilder , private modalService: NgbModal , private datePipe:DatePipe){}
   ngOnInit(): void {
@@ -47,7 +48,7 @@ export class TaskComponent {
     this.memoForm = this.formBuilder.group({
       memo: ['', Validators.required],
       task_id: ['', Validators.required],
-      admin_id:[this.user.id, Validators.required],
+      admin_id:['', Validators.required],
       type:['', Validators.required],
     });
     
@@ -163,8 +164,10 @@ export class TaskComponent {
   }
 
   getMemos(){
+    this.chatLoading = true
     this.req.post('chat/list',{task_id:this.taskViewData.id}).subscribe((res:any)=>{
       this.memos = res
+      this.chatLoading = false
      return this.memos.sort((a:any, b:any) => {
       const timeA = new Date(a.created_at).getTime();
       const timeB = new Date(b.created_at).getTime();
@@ -174,15 +177,18 @@ export class TaskComponent {
 
   
   sendMemo() {
+    this.chatLoading = true
     this.memoForm.patchValue({
       task_id: this.taskViewData.id,
-      type:this.user.role == 'admin' ? 'admin' :'staff'
+      type:this.user.role == 'admin' ? 'admin' :'staff',
+      admin_id:this.user.id
     });
     if (this.memoForm.valid) {
       this.req.post('chat', this.memoForm.value).subscribe(
         (res: any) => {
           this.memoForm.reset();
           this.getMemos();
+          this.chatLoading = false
         },
         (error: any) => {
           console.error('Error sending memo:', error);
@@ -197,5 +203,40 @@ export class TaskComponent {
       this.memoForm.markAllAsTouched();
     }
   }
+
+ 
+updateTask() {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'You are about to update the task. This action cannot be undone.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, update it!',
+    cancelButtonText: 'Cancel',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.req.post('task/update', { id: this.taskViewData.id, status: 'Completed' }).subscribe(
+        (res: any) => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Task has been updated.',
+          });
+          this.getClients();
+          this.getStaff();
+          this.getTasks();
+        },
+        (error: any) => {
+          console.error('Error updating task:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update task. Please try again later.',
+          });
+        }
+      );
+    }
+  });
+}
   
 }

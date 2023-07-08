@@ -44,15 +44,19 @@
             <li>Assigned Date: <b>{{ formatDate(taskViewData.created_at) }}</b></li>
             <li>Due Date: <b>{{ formatDate(taskViewData.dueDate) }}</b></li>
             <li>Client: <b>{{ taskViewData.client.name }}</b></li>
+            <li>Status: <b>{{ taskViewData.status }}</b></li>
           </ul>
           <p>{{ taskViewData.description }}</p>
           <div class="d-flex">
-            <button class="btn btn-success">Mark as completed</button>
+            <button class="btn btn-success" *ngIf="taskViewData.status !== 'completed'" (click)="updateTask()">Mark as completed</button>
           </div>
         </div>
         <div class="col-md-4">
           <h4>Memo</h4>
           <div class="memo">
+            <div class="chat_loader" *ngIf="chatLoading">
+              <span class="loader"></span>
+            </div>
             <div class="container">
               <div class="row">
                 <div class="col-md-12">
