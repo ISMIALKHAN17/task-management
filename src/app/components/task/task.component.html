@@ -6,7 +6,7 @@
         <h3>Task</h3>
         <button class="theme_btn" (click)="open(addTask)"><i class="fas fa-plus"></i> add  </button>
     </div>
-    <table class="table table-striped">
+    <table class="table table-striped" *ngIf="!taskView">
         <thead>
           <tr>
             <th scope="col">#</th>
@@ -28,7 +28,7 @@
             <td>{{ task.description.length > 20 ? task.description.slice(0, 20) + '...' : task.description }}</td>
             <td>
                 <ul class="actions m-0 d-flex  gap-2">
-                    <li><i class="far fa-eye" data-toggle="tooltip" title="View"></i></li>
+                  <li><i class="far fa-eye" data-toggle="tooltip" title="View" (click)="viewTask(task); taskView=true"></i></li>
                     <li><i class="fas fa-trash-alt" (click)="deleteTask(task.id)" data-toggle="tooltip" title="Delete"></i></li>
                 </ul>
             </td>
@@ -36,9 +36,66 @@
 
         </tbody>
       </table>
-
-
+    <div class="taskView" *ngIf="taskView">
+      <div class="row mt-3">
+        <div class="col-md-8 task_info" >
+          <h3>{{ taskViewData.name }}</h3>
+          <ul>
+            <li>Assigned Date: <b>{{ formatDate(taskViewData.created_at) }}</b></li>
+            <li>Due Date: <b>{{ formatDate(taskViewData.dueDate) }}</b></li>
+            <li>Client: <b>{{ taskViewData.client.name }}</b></li>
+          </ul>
+          <p>{{ taskViewData.description }}</p>
+          <div class="d-flex">
+            <button class="btn btn-success">Mark as completed</button>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <h4>Memo</h4>
+          <div class="memo">
+            <div class="container">
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="memo-container">
+                    <div class="memo" *ngFor="let memo of memos" [ngClass]="{ 'admin-memo': memo.type === 'admin', 'staff-memo': memo.type === 'staff' }">
+                      <div class="memo-body">
+                        <div class="memo-content">
+                          <span class="memo-text" *ngIf="memo.type == 'admin'">Admin</span>
+                          <span class="memo-text" *ngIf="memo.type ==='staff'">Staff</span>
+                          <span class="memo-info">{{ formatDateWithTime(memo.created_at) }}</span>
+                        </div>
+                        <p>{{memo.memo}}</p>
+                      </div>
+                    </div>                    
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="memo-form">
+                    <form [formGroup]="memoForm" (ngSubmit)="sendMemo()">
+                      <div class="form-group">
+                        <textarea class="form-control" rows="3" placeholder="Type your memo..." formControlName="memo"></textarea>
+                        <div class="invalid-feedback" *ngIf="memoForm.get('memo').errors && memoForm.get('memo').touched" >
+                          Memo is required.
+                        </div>
+                      </div>
+                      <button type="submit" class="btn btn-primary">Send</button>
+                    </form>
+                    
+                    
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div> 
+    </div>
 </div>
+
 
 
 <ng-template #addTask let-c="close" let-d="dismiss">

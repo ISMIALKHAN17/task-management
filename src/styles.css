@@ -846,4 +846,66 @@ select {
     left: -14px;
     top: 2px;
 }
+
+/* memo  */
+.memo-container {
+  display: flex;
+  flex-direction: column;
+  height: 300px;
+  overflow-y: scroll;
+}
+
+.memo {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.memo .memo-body {
+  margin-bottom: 5px;
+}
+
+.memo-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.memo-text {
+  font-weight: bold;
+}
+
+.memo-info {
+  color: #999999;
+  font-size: 12px;
+}
+
+.admin-memo {
+  align-self: flex-start;
+}
+
+.staff-memo {
+  align-self: flex-end;
+}
+
+.form-group {
+  margin-bottom: 10px;
+}
+
+.btn-primary {
+  margin-left: 10px;
+}
+
+.memo-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 21px;
+}
+/* memo  */
+.task_info ul li {
+  margin-bottom: 10px;
+}
   /* task */
+
+
