@@ -1,0 +1,8 @@
+<ng-container *ngIf="isLoggedIn; else loginTemplate">
+  <app-main></app-main>
+</ng-container>
+
+<ng-template #loginTemplate>
+  <app-login (loginStatus)="onLoginStatus($event)"></app-login>
+</ng-template>
+

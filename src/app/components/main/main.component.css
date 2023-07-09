@@ -1,0 +1,9 @@
+li.nav-link.active a {
+    background: var(--main-color);
+    color: #fff !important;
+}
+
+
+li.nav-link.active a i , li.nav-link.active a span {
+    color: #fff;
+}

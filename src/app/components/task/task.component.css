@@ -1,0 +1,79 @@
+.taskView h3{
+  text-transform: capitalize;
+}
+.filter {
+  display: flex;
+  justify-content: end;
+  margin: 10px 0px;
+}
+
+.filter input {
+  border: 1px solid var(--main-color);
+  padding: 7px;
+  border-radius: 5px;
+  width: 100%;
+}
+
+
+.memo-wrap {
+  background: #fff;
+  padding: 10px;
+  border-radius: 9px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 5px;
+}
+.globel_header h3 .btn {
+  background: var(--main-color);
+  border: none;
+  opacity: 0.7;
+}
+
+.globel_header h3 .btn:hover {
+  opacity: 1;
+}
+
+.memo-container {
+  height: 300px;
+  overflow-y: scroll;
+}
+
+
+.memo-container::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	border-radius: 10px;
+	background-color: #F5F5F5;
+}
+
+.memo-container::-webkit-scrollbar
+{
+	width: 12px;
+	background-color: #F5F5F5;
+}
+
+.memo-container::-webkit-scrollbar-thumb
+{
+	border-radius: 10px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #555;
+}
+.memo-wrap i {
+  position: absolute;
+  background: #eef2ff;
+  border-radius: 100%;
+  height: 30px;
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  right: 6px;
+  transform: translateX(39px);
+  transition: 0.3s;
+  color: red;
+  cursor: pointer;
+}
+
+.memo-wrap:hover i {
+  transform: translateX(0px);
+}

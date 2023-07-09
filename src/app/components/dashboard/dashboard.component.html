@@ -1,0 +1,48 @@
+<div class="globel_wrap">
+  <div class="loading_wrap" *ngIf="loading">
+    <span class="loader"></span>
+  </div>
+  <div class="globel_header d-flex justify-content-between align-items-center">
+    <h3>Dashboard</h3>
+  </div>
+  <div class="row mt-3" >
+    <div class="col-md-8">
+      <h3>Tasks Overview</h3>
+      <div class="row">
+        <div class="col-md-3">
+          <div class="report_wrap">
+            <h3>{{data.Completed + data.Pending + data.Disabled}}</h3>
+            <p>Total</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="report_wrap">
+            <h3>{{data.Completed}}</h3>
+            <p>Completed</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="report_wrap">
+            <h3>{{data.Pending}}</h3>
+            <p>Open</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="report_wrap">
+            <h3>{{data.Disabled}}</h3>
+            <p>Disabled</p>
+          </div>
+        </div>
+      </div>
+      <p class="mt-4">Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus dignissimos quaerat mollitia deserunt accusamus nemo accusantium cupiditate obcaecati porro quibusdam voluptates, laudantium minus vitae, necessitatibus, veniam suscipit natus at similique!</p>
+    </div>
+    <div class="col-md-4">
+      <div class="reports_charts" *ngIf="!loading">
+        <div>
+          <canvas #chartCanvasRef height="300" width="400"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

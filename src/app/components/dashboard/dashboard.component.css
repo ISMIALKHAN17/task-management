@@ -1,0 +1,18 @@
+.report_wrap {
+  background-color: var(--main-color);
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.report_wrap h3 {
+  color: #fff;
+  font-size: 55px;
+  margin-bottom: 10px;
+}
+
+.report_wrap p {
+  color: #fff;
+  font-size: 16px;
+}
