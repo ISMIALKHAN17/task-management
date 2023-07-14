@@ -1,26 +1,52 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import Chart from 'chart.js/auto'
+import { RequestService } from 'src/app/services/request.service';
 
 
 @Component({
   selector: 'app-reports',
   templateUrl: './reports.component.html',
-  styleUrls: ['./reports.component.css']
+  styleUrls: ['./reports.component.css'],
+  providers:[DatePipe]
 })
 export class ReportsComponent {
   loading:any = false
+  tasks:any
+  pagination:any = []
+  paginationData:any
+  chartData:any
+  user:any
   @ViewChild('chartCanvasRef', { static: false }) chartCanvasRef!: ElementRef;
   chart: any;
+  constructor(private req:RequestService , private datePipe:DatePipe){}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    const user = localStorage.getItem('user')
+    this.user = JSON.parse(user!)
+    this.loading = true
+    this.req.post('task/report',true).subscribe((res:any)=>{
+      this.tasks = res.data
+      this.pagination = []
+       for(let i = 1; i <= res.last_page ; i++){
+      this.pagination.push(i)
+      }
+      this.paginationData = res
+      this.loading = false
+      setTimeout(() => {
+        this.initializeChart();
+      }, 100);
+    })
 
-  ngAfterViewInit(): void {
-    this.initializeChart();
+    this.req.post('task/count',true).subscribe((res:any)=>{
+      this.chartData = res
+    })
   }
 
-  initializeChart(): void {
-    const data = [22, 33]; // Replace with your actual data
 
+
+  initializeChart(): void {
+    const data = [this.chartData.Completed, this.chartData.Due,this.chartData.Incomplete,this.chartData.Disabled]; // Replace with your actual data
     const canvas = this.chartCanvasRef.nativeElement;
     const context = canvas.getContext('2d');
 
@@ -32,10 +58,10 @@ export class ReportsComponent {
     this.chart = new Chart(context, {
       type: 'pie',
       data: {
-        labels: ['Data 1', 'Data 2'], // Replace with your actual labels
+        labels: ['Completed ', 'Due' ,'Incomplete','Disabled'], // Replace with your actual labels
         datasets: [{
           data: data,
-          backgroundColor: ['green', 'red'] // Replace with your actual colors
+          backgroundColor: ['#28a745', '#ffc107','#dc3545','#6c757d'] // Replace with your actual colors
         }]
       },
       options: {
@@ -45,12 +71,79 @@ export class ReportsComponent {
             position: 'top',
           },
           title: {
-            display: true,
-            text: 'Chart.js Pie Chart'
+            display: false,
           }
         }
       }
     });
 
   }
+
+  filterType: string = 'date';
+  startDate: string = '';
+  endDate: string = '';
+  searchColumn: string = '';
+
+  filteredTasks: Task[] = [];
+
+
+  containsSearchText(task: Task): boolean {
+    return (
+      task.name.toLowerCase().includes(this.searchColumn.toLowerCase()) ||
+      task.clientName.toLowerCase().includes(this.searchColumn.toLowerCase())
+    );
+  }
+
+  dateFilter() {
+    this.loading = true
+    if(this.filterType == 'date'){
+      // Make sure to replace 'start-date here' and 'end date here' with the actual values from the inputs
+      this.req.post('task/report', { startDate: this.startDate, endDate: this.endDate }).subscribe((res: any) => {
+        this.tasks = res.data
+        this.loading = false
+        // Handle the API response here
+      });
+    }else{
+      this.loading = true
+      this.req.post('task/search',{search:this.searchColumn}).subscribe((res:any)=>{
+        this.loading = false
+        this.tasks = res.data
+        this.pagination = []
+          for(let i = 1; i <= res.last_page ; i++){
+          this.pagination.push(i)
+          }
+          this.paginationData = res
+          this.loading = false
+          console.log(this.tasks)
+      })
+    }
+  }
+
+  taskPaginantion(page:any){
+    this.loading = true
+    this.req.post(`task/list?page=${page}`,{user_id:this.user.id}).subscribe((res:any)=>{
+      this.tasks = res.data.data
+      this.pagination = []
+      for(let i = 1; i <= res.data.last_page ; i++){
+      this.pagination.push(i)
+      }
+      this.paginationData = res.data
+      this.loading = false
+      console.log(this.tasks)
+    })
+  }
+
+  formatDate(date: string): string {
+    const formattedDate = this.datePipe.transform(date, 'MM/dd/yyyy');
+    return formattedDate || '';
+  }
+
+}
+
+interface Task {
+  id: number;
+  name: string;
+  clientName: string;
+  dueDate: string;
+  status: string;
 }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output,HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-main',
@@ -30,5 +30,10 @@ export class MainComponent {
     this.loginStatus.emit(false);
     localStorage.setItem('loginStatus', 'false');
     window.location.reload()
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event: any) {
+    this.isSidebarClosed = window.innerWidth < 1200;
   }
 }

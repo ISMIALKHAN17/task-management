@@ -17,7 +17,7 @@ export class DashboardComponent {
 
   ngOnInit(): void {
     this.loading = true
-    this.req.post('task/report',true).subscribe((res:any)=>{
+    this.req.post('task/count',true).subscribe((res:any)=>{
       this.data = res
       this.loading = false
       setTimeout(() => {
@@ -31,7 +31,7 @@ export class DashboardComponent {
   }
 
   initializeChart(): void {
-    const data = [this.data.Completed,this.data.Pending,this.data.Disabled]; // Replace with your actual data
+    const data = [this.data.Completed, this.data.Due,this.data.Incomplete,this.data.Disabled]; // Replace with your actual data
 
     const canvas = this.chartCanvasRef.nativeElement;
     const context = canvas.getContext('2d');
@@ -44,10 +44,10 @@ export class DashboardComponent {
     this.chart = new Chart(context, {
       type: 'pie',
       data: {
-        labels: ['Completed', 'Open','Disabled'], // Replace with your actual labels
+        labels: ['Completed ', 'Due' ,'Incomplete','Disabled'], // Replace with your actual labels
         datasets: [{
           data: data,
-          backgroundColor: ['#198754', '#4E4FEB' , '#EEEEEE'] // Replace with your actual colors
+          backgroundColor: ['#28a745', '#ffc107','#dc3545','#6c757d'] // Replace with your actual colors
         }]
       },
       options: {

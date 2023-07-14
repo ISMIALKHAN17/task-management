@@ -16,6 +16,10 @@ export class StaffComponent {
   updateStaffForm:any
   editStaff:any
   s_id:any
+  updateStaffPass:any
+  paginationData:any
+  pagination:any=[]
+  searchTerm:any
 
   constructor(private modalService: NgbModal , private formBuilder: FormBuilder , private req:RequestService) {
     // Constructor logic here
@@ -43,6 +47,9 @@ export class StaffComponent {
       email: ['', [Validators.required, Validators.email]],
       userName: ['', Validators.required],
       role: new FormControl('select', [Validators.required])
+    });
+    this.updateStaffPass = this.formBuilder.group({
+      password: new FormControl('', [Validators.required]),
     });
   }
 
@@ -96,7 +103,12 @@ export class StaffComponent {
   getStaff(){
     this.loading = true
     this.req.post('user/list',true).subscribe((res:any)=>{
-      this.staff = res.data
+      this.staff = res.data.data
+      this.pagination = []
+      for(let i = 1; i <= res.data.last_page ; i++){
+      this.pagination.push(i)
+      }
+      this.paginationData = res.data
       this.loading = false
     })
   }
@@ -135,6 +147,7 @@ export class StaffComponent {
 
 
   updateStafff(){
+    if(this.updateStaffForm.valid){
       Swal.fire({
         title: 'Confirmation',
         text: 'Are you sure you want to update the Member?',
@@ -173,6 +186,111 @@ export class StaffComponent {
 
         }
       });
+    }
+    else{
+      this.updateStaffForm.markAllAsTouched();
+    }
 
   }
+
+
+  openUpdateEmployeePassword(modal:any , data:any){
+    this.s_id = data.id
+    this.modalService.open(modal ,{centered:true})
+  }
+  UpdateEmployeePassword(){
+    if(this.updateStaffPass.valid){
+    Swal.fire({
+      title: 'Confirmation',
+      text: 'Are you sure you want to update the Member?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'No'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.loading = true;
+        const clientUpdate = {
+          ...this.updateStaffPass.value,
+          id: this.s_id
+        };
+        this.req.post('user/update/password', clientUpdate).subscribe(
+          (res: any) => {
+            this.loading = false;
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'Client has been updated.'
+            });
+            this.getStaff();
+            this.modalService.dismissAll();
+            this.updateStaffPass.reset();
+          },
+          (error: any) => {
+            this.loading = false;
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to update client. Please try again later.'
+            });
+          }
+        );
+
+      }
+    });
+  }else{
+
+    this.updateStaffPass.markAllAsTouched();
+
+  }
+  }
+
+
+  // staff disabled
+  disableUser(staff: any) {
+    this.loading = true;
+    const status = staff.status === 'active' ? 'Disabled' : 'active';
+    this.req.post('user/update', { id: staff.id, status: status }).subscribe(
+      (res: any) => {
+        this.loading = false;
+        // Show success message
+        this.getStaff();
+      },
+      (error: any) => {
+        this.loading = false;
+        this.getStaff();
+        // Show error message
+        Swal.fire('Error', 'Failed to update user status. Please try again.', 'error');
+      }
+    );
+  }
+
+  // staff disabled
+
+  searchTasks(){
+    this.loading = true
+    this.req.post('user/search',{search:this.searchTerm}).subscribe((res:any)=>{
+      this.staff = res.data
+      this.pagination = []
+      for(let i = 1; i <= res.last_page ; i++){
+      this.pagination.push(i)
+      }
+      this.paginationData = res.data
+      this.loading = false
+    })
+  }
+
+  taskPaginantion(page:any){
+    this.loading = true
+    this.req.post(`task/list?page=${page}`,true).subscribe((res:any)=>{
+      this.staff = res.data
+      this.pagination = []
+      for(let i = 1; i <= res.last_page ; i++){
+      this.pagination.push(i)
+      }
+      this.paginationData = res.data
+      this.loading = false
+    })
+  }
+
 }

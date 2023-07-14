@@ -15,6 +15,9 @@ export class ClientsComponent {
   loading:any = false
   editClient:any
   c_id:any
+  pagination:any = []
+  paginationData:any
+  searchTerm:any = []
 
   constructor(private modalService: NgbModal , private req:RequestService) {
     // Constructor logic here
@@ -43,9 +46,10 @@ export class ClientsComponent {
 
 onSubmit() {
   if (this.clientForm.valid && !this.editClient) {
+    this.loading = true
     console.log(this.clientForm.value);
     this.req.post('client/add', this.clientForm.value).subscribe((res: any) => {
-      console.log(res);
+      this.loading = false
       Swal.fire({
         title: 'Success',
         text: 'Client added successfully.',
@@ -117,7 +121,12 @@ else if (this.clientForm.valid && this.editClient) {
   getClients(){
     this.loading= true
     this.req.post('client/list',true).subscribe((res:any)=>{
-      this.clients = res.data
+      this.clients = res.data.data
+      for(let i = 1; i <= res.last_page ; i++){
+            this.pagination.push(i)
+            }
+            this.paginationData = res.data
+            this.loading = false
       this.loading= false
     })
   }
@@ -158,4 +167,48 @@ else if (this.clientForm.valid && this.editClient) {
     this.modalService.open(modal,{centered:true})
   }
 
+
+  disableClient(client: any) {
+    this.loading = true;
+    const status = client.status === 'active' ? 'Disabled' : 'active';
+    this.req.post('client/update', { id: client.id, status: status }).subscribe(
+      (res: any) => {
+        this.loading = false;
+        // Show success message
+        this.getClients();
+      },
+      (error: any) => {
+        this.loading = false;
+        this.getClients();
+        // Show error message
+        Swal.fire('Error', 'Failed to update user status. Please try again.', 'error');
+      }
+    );
+  }
+
+  searchTasks(){
+    this.loading = true
+    this.req.post('client/search',{search:this.searchTerm}).subscribe((res:any)=>{
+      this.clients = res.data
+        for(let i = 1; i <= res.last_page ; i++){
+        this.pagination.push(i)
+        }
+        this.paginationData = res.data
+        this.loading = false
+
+    })
+  }
+
+  taskPaginantion(page:any){
+    this.loading = true
+    this.req.post(`client/list?page=${page}`,true).subscribe((res:any)=>{
+      this.clients = res.data.data
+      this.pagination = []
+      for(let i = 1; i <= res.data.last_page ; i++){
+      this.pagination.push(i)
+      }
+      this.paginationData = res.data
+      this.loading = false
+    })
+  }
 }

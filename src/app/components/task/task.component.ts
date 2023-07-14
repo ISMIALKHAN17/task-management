@@ -4,6 +4,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { RequestService } from 'src/app/services/request.service';
 import { DatePipe } from '@angular/common';
 import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-task',
   templateUrl: './task.component.html',
@@ -16,18 +17,22 @@ export class TaskComponent {
   staff:any
   taskForm:any
   taskViewData:any
-  tasks:any
+  tasks:any = []
   user:any
   taskView:any = false
-  memos:any
+  memos:any = []
   memoForm:any
-  chatLoading = false
+  chatLoading = true
   editTaskData:any
   checkEditTask:any = false
-  filteredTasks:any
   searchTerm:any =''
   pagination:any = []
   paginationData:any
+  dateForm:any
+  showDropdown = false;
+  tasksData:any = []
+  uniqueTaskNames:any = []
+
 
   constructor(private req:RequestService , private formBuilder: FormBuilder , private modalService: NgbModal , private datePipe:DatePipe){}
   ngOnInit(): void {
@@ -45,9 +50,11 @@ export class TaskComponent {
       dueDate: ['', Validators.required],
       client_id: ['', Validators.required],
       user_id: ['', Validators.required],
+      numberOfTask: ['', Validators.required],
+      repeatTaskDate: ['', Validators.required],
       repeatTask: ['null', Validators.required],
-      status: ['Open', Validators.required],
       admin_id:[this.user.id, Validators.required],
+
     });
 
     this.memoForm = this.formBuilder.group({
@@ -56,19 +63,37 @@ export class TaskComponent {
       admin_id:['', Validators.required],
       type:['', Validators.required],
     });
+    this.dateForm = this.formBuilder.group({
+      dateCompleted: [''],
+      dateMailed: [''],
+      dateFiled: ['']
+    });
+  }
 
+
+  editeDates(task:any,modal:any){
+    this.open(modal);
+    if(task.dateCompleted === 'Not added' && task.dateMailed === 'Not added' && task.dateFiled === 'Not added'){
+      return;
+    }else{
+      this.dateForm.patchValue({
+        dateCompleted: task.dateCompleted,
+        dateMailed: task.dateMailed,
+        dateFiled: task.dateFiled
+      })
+    }
   }
 
   getClients(){
     this.loading = true
-    this.req.post('client/list',true).subscribe((res:any)=>{
+    this.req.post('client/check',true).subscribe((res:any)=>{
       this.clients = res.data
       this.loading = false
     })
   }
   getStaff(){
     this.loading = true
-    this.req.post('user/list',true).subscribe((res:any)=>{
+    this.req.post('user/check',true).subscribe((res:any)=>{
       this.staff = res.data
       this.loading = false
     })
@@ -77,16 +102,43 @@ export class TaskComponent {
     this.loading = true
     this.req.post('task/list',{user_id:this.user.id}).subscribe((res:any)=>{
       this.tasks = res.data.data
+      this.pagination = []
       for(let i = 1; i <= res.data.last_page ; i++){
       this.pagination.push(i)
       }
       this.paginationData = res.data
       this.loading = false
-      this.filterTasks()
-      console.log(this.tasks)
+      this.uniqueTaskNames = this.getUniqueTaskNames(this.tasks);
     })
   }
   onSubmit() {
+    const repeatTask = this.taskForm.get('repeatTask').value;
+    const repeatTaskDate = new Date(this.taskForm.get('repeatTaskDate').value);
+    const today = new Date();
+    const dueDate = new Date(this.taskForm.get('dueDate').value);
+
+    const timeDifference = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+
+    const numberOfTasks = this.calculateNumberOfTasks(repeatTask, today, repeatTaskDate);
+    console.log('Difference in days:', diffDays);
+    const taskDates = this.calculateTaskDates(repeatTask, today, numberOfTasks);
+
+    for (let i = 1; i <= numberOfTasks; i++) {
+      const adjustedDate = new Date(taskDates[i-1]);
+      adjustedDate.setDate(adjustedDate.getDate() + diffDays);
+      console.log(adjustedDate)
+      const formattedDate = this.datePipe.transform(adjustedDate, 'yyyy-MM-dd');
+
+      this.tasksData.push({
+        number: i,
+        dueDate: formattedDate
+      });
+    }
+    this.taskForm.patchValue({
+      numberOfTask : this.tasksData,
+      admin_id:this.user.id
+    })
     if (this.taskForm.valid && !this.checkEditTask) {
       // Submit the form data
       this.loading = true
@@ -101,12 +153,12 @@ export class TaskComponent {
             timerProgressBar: true,
             showConfirmButton: false
           });
+          this.taskForm.reset()
           this.modalService.dismissAll();
           this.getClients();
           this.getStaff();
           this.getTasks();
           this.loading = false;
-          this.taskForm.reset()
         },
         (error: any) => {
           console.log('error', error);
@@ -120,8 +172,14 @@ export class TaskComponent {
         }
       );
     }
-    else if (this.taskForm.valid && this.checkEditTask){
+    else if (this.checkEditTask && this.taskViewData.repeatTaskDate === this.taskForm.repeatTaskDate && this.taskViewData.repeatTask === this.taskForm.repeatTask){
+      this.taskForm.patchValue({
+        repeatTaskDate: 'null',
+      repeatTask: 'null',
+      numberOfTask:[1]
+      })
 
+      if(this.taskForm.valid){
       Swal.fire({
         title: 'Are you sure?',
         text: 'You are about to update the task. This action cannot be undone.',
@@ -134,11 +192,13 @@ export class TaskComponent {
           this.loading = true
           this.editTaskData = { ...this.taskForm.value };
           delete this.editTaskData.admin_id;
+          delete this.editTaskData.repeatTaskDate;
+          delete this.editTaskData.repeatTask;
+          delete this.editTaskData.numberOfTask;
           this.editTaskData.id = this.taskViewData.id;
           this.req.post('task/update', this.editTaskData).subscribe(
             (res: any) => {
               this.taskViewData = res.data
-
               this.loading = false
               Swal.fire({
                 icon: 'success',
@@ -164,6 +224,67 @@ export class TaskComponent {
         }
       });
     }
+    }
+    else if(this.taskViewData.repeatTaskDate !== this.taskForm.repeatTaskDate || this.taskViewData.repeatTask !== this.taskForm.repeatTask){
+      if(this.taskForm.valid){
+        Swal.fire({
+          title: 'Are you sure?',
+          text: 'You are about to update the task. This action cannot be undone.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, update it!',
+          cancelButtonText: 'Cancel',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const tasks = this.taskForm.value.numberOfTask
+
+            const uniqueTasks:any = [];
+            const uniqueDueDates:any = {};
+
+            tasks.forEach((task:any) => {
+              const dueDate = task.dueDate;
+              if (!uniqueDueDates[dueDate]) {
+                uniqueDueDates[dueDate] = true;
+                uniqueTasks.push(task);
+              }
+            });
+            this.taskForm.patchValue({
+              numberOfTask : uniqueTasks
+            })
+            this.loading = true
+            this.editTaskData = { ...this.taskForm.value };
+            this.editTaskData.type = this.taskViewData.type;
+            this.editTaskData.id = this.taskViewData.id;
+
+            this.req.post('task/edit', this.editTaskData).subscribe(
+              (res: any) => {
+                this.taskViewData = res.data
+                this.loading = false
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Success',
+                  text: 'Task has been updated.',
+                });
+                this.modalService.dismissAll()
+                this.getClients();
+                this.getStaff();
+                this.getTasks();
+                this.taskForm.reset()
+              },
+              (error: any) => {
+                this.loading = false
+                console.error('Error updating task:', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Failed to update task. Please try again later.',
+                });
+              }
+            );
+          }
+        });
+      }
+    }
     else {
       this.taskForm.markAllAsTouched();
       this.loading = false;
@@ -172,6 +293,7 @@ export class TaskComponent {
 
   viewTask(task:any) {
     this.taskViewData = task;
+    this.chatLoading = true
     this.getMemos()
     // Set taskView to the selected task
   }
@@ -239,6 +361,7 @@ updateTask() {
     cancelButtonText: 'Cancel',
   }).then((result) => {
     if (result.isConfirmed) {
+      this.loading = true
       this.req.post('task/update', { id: this.taskViewData.id, status: 'Completed' }).subscribe(
         (res: any) => {
           Swal.fire({
@@ -246,11 +369,14 @@ updateTask() {
             title: 'Success',
             text: 'Task has been updated.',
           });
+          this.loading = false
           this.getClients();
           this.getStaff();
           this.getTasks();
+          this.taskView = false
         },
         (error: any) => {
+          this.loading = false
           console.error('Error updating task:', error);
           Swal.fire({
             icon: 'error',
@@ -264,6 +390,7 @@ updateTask() {
 }
 editTask(modal:any,task:any){
   this.checkEditTask = true
+  this.taskViewData = task
   this.taskForm.patchValue({
     name:task.name,
     description: task.description,
@@ -273,6 +400,7 @@ editTask(modal:any,task:any){
     memo:task.memo,
     status:task.status,
     repeatTask: task.repeatTask,
+    repeatTaskDate: task.repeatTaskDate,
     admin_id:this.user.id
   })
 
@@ -287,20 +415,7 @@ getMemos(){
     this.chatLoading = false
 })
 }
-filterTasks() {
-  this.filteredTasks = this.tasks.filter((task:any) => {
-    // Convert all task property values to lowercase for case-insensitive search
-    const lowerCaseTerm = this.searchTerm.toLowerCase();
 
-    return (
-      task.name.toLowerCase().includes(lowerCaseTerm) ||
-      task.dueDate.toLowerCase().includes(lowerCaseTerm) ||
-      task.client.name.toLowerCase().includes(lowerCaseTerm) ||
-      task.user.name.toLowerCase().includes(lowerCaseTerm) ||
-      task.description.toLowerCase().includes(lowerCaseTerm)
-    );
-  });
-}
 
 addMemo() {
   this.chatLoading = true
@@ -361,16 +476,275 @@ deleteMemo(id: any) {
 
 taskPaginantion(page:any){
   this.loading = true
-  this.req.post(`task/list?page=${page}`,true).subscribe((res:any)=>{
+  this.req.post(`task/list?page=${page}`,{user_id:this.user.id}).subscribe((res:any)=>{
     this.tasks = res.data.data
+    this.pagination = []
     for(let i = 1; i <= res.data.last_page ; i++){
     this.pagination.push(i)
     }
     this.paginationData = res.data
     this.loading = false
-    this.filterTasks()
     console.log(this.tasks)
   })
 }
+
+searchTasks(){
+  this.loading = true
+  this.req.post('task/search',{search:this.searchTerm}).subscribe((res:any)=>{
+    this.tasks = res.data
+    console.log(this.tasks)
+      for(let i = 1; i <= res.last_page ; i++){
+      this.pagination.push(i)
+      }
+      this.paginationData = res.data
+      this.loading = false
+      console.log(this.tasks)
+  })
+}
+
+disableTask(task:any , status:any){
+var today = new Date();
+var dueDate = new Date(task.dueDate);
+let Taskstatus = status
+if (Taskstatus === 'Disabled' && dueDate < today) {
+  Taskstatus = 'Incomplete'
+}
+else if (Taskstatus === 'Disabled' && dueDate > today){
+  Taskstatus = 'Due'
+}
+else {
+  Taskstatus = 'Disabled'
+}
+this.loading = true
+if(Taskstatus === 'Disabled'){
+  this.req.post('task/modify', { type:task.type, status: Taskstatus , dueDate:task.dueDate}).subscribe(
+    (res: any) => {
+        this.loading = false
+        this.getClients();
+        this.getStaff();
+        this.getTasks();
+      },
+      (error: any) => {
+        console.error('Error updating task:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to update task. Please try again later.',
+        });
+      }
+    );
+}else{
+
+  this.req.post('task/update', { id:task.id, status: Taskstatus }).subscribe(
+  (res: any) => {
+      this.loading = false
+      this.getClients();
+      this.getStaff();
+      this.getTasks();
+    },
+    (error: any) => {
+      console.error('Error updating task:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update task. Please try again later.',
+      });
+    }
+  );
+}
+}
+
+
+sortTasksByStatusAndDueDate(tasks: any[]): any[] {
+  return tasks.sort((a, b) => {
+    // Sort by status (incomplete tasks first)
+    if (a.status !== 'Completed' && b.status === 'Completed') {
+      return -1;
+    }
+    if (a.status === 'Completed' && b.status !== 'Completed') {
+      return 1;
+    }
+    if (a.status === 'Disabled' && b.status !== 'Disabled') {
+      return 1;
+    }
+    if (a.status !== 'Disabled' && b.status === 'Disabled') {
+      return -1;
+    }
+
+    // Sort by due date
+    const dateA = new Date(a.dueDate);
+    const dateB = new Date(b.dueDate);
+    return dateA.getTime() - dateB.getTime();
+  });
+}
+
+
+hideDropdown() {
+  setTimeout(() => {
+    this.showDropdown = false;
+  }, 200);
+}
+
+selectExistingTask(taskName: string, event: Event) {
+  event.stopPropagation(); // Prevents the focusout event from triggering
+  this.taskForm.get('name').setValue(taskName);
+  this.hideDropdown();
+}
+
+
+onDateFormSubmit() {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you want to update the task?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.loading = true;
+      const formValue = this.dateForm.value;
+const requestData:any = {};
+for (const [key, value] of Object.entries(formValue)) {
+  if (value !== null && value !== '') {
+    requestData[key] = value;
+  }
+}
+this.req.post('task/update', { id: this.taskViewData.id, ...requestData }).subscribe(
+  (res: any) => {
+    this.loading = false;
+    this.getClients();
+    this.getStaff();
+    this.getTasks();
+    this.modalService.dismissAll();
+    this.taskView = false;
+    this.dateForm.reset();
+  },
+  (error: any) => {
+    this.loading = false;
+    console.error('Error updating task:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to update task. Please try again later.',
+    });
+  }
+);
+
+    }
+  });
+}
+calculateNumberOfTasks(repeatTask: string, startDate: Date, endDate: Date): number {
+  const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
+  const diffDays = Math.round(Math.abs((endDate.getTime() - startDate.getTime()) / oneDay));
+  let diffYears = 0; // Corrected variable declaration
+
+  switch (repeatTask) {
+    case 'Daily':
+      return diffDays + 1; // Include the start date
+    case 'Weekly':
+      return Math.floor(diffDays / 7) + 1; // Include the start date
+    case 'Biweekly':
+      return Math.floor(diffDays / 14) + 1; // Include the start date
+    case 'Monthly':
+      return startDate.getMonth() !== endDate.getMonth() ? 2 : 1; // Include the start date and end date if they are in different months
+    case 'Quarterly':
+      const diffMonths = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth());
+      return Math.floor(diffMonths / 3) + 1; // Include the start date
+    case 'Half Yearly':
+      diffYears = endDate.getFullYear() - startDate.getFullYear(); // Corrected variable assignment
+      return Math.floor(diffYears / 2) + 1; // Include the start date
+    case 'Yearly':
+      diffYears = endDate.getFullYear() - startDate.getFullYear(); // Corrected variable assignment
+      return diffYears + 1; // Include the start date
+    default:
+      return 1; // Default to creating a single task
+  }
+
+
+}
+
+calculateTaskDates(repeatTask: string, startDate: Date, numberOfTasks: number): Date[] {
+  const taskDates: Date[] = [startDate];
+  const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
+
+  switch (repeatTask) {
+    case 'Daily':
+      for (let i = 1; i < numberOfTasks; i++) {
+        const nextDate = new Date(startDate.getTime() + i * oneDay);
+        taskDates.push(nextDate);
+      }
+      break;
+    case 'Weekly':
+      for (let i = 1; i < numberOfTasks; i++) {
+        const nextDate = new Date(startDate.getTime() + i * 7 * oneDay);
+        taskDates.push(nextDate);
+      }
+      break;
+    case 'Biweekly':
+      for (let i = 1; i < numberOfTasks; i++) {
+        const nextDate = new Date(startDate.getTime() + i * 14 * oneDay);
+        taskDates.push(nextDate);
+      }
+      break;
+    case 'Monthly':
+      const startMonth = startDate.getMonth();
+      for (let i = 1; i < numberOfTasks; i++) {
+        const nextMonth = startMonth + i;
+        const nextYear = startDate.getFullYear() + Math.floor(nextMonth / 12);
+        const nextDate = new Date(nextYear, nextMonth % 12, startDate.getDate());
+        taskDates.push(nextDate);
+      }
+      break;
+    case 'Quarterly':
+      const startQuarter = Math.floor(startDate.getMonth() / 3);
+      for (let i = 1; i < numberOfTasks; i++) {
+        const nextQuarter = startQuarter + i;
+        const nextYear = startDate.getFullYear() + Math.floor(nextQuarter / 4);
+        const nextMonth = (nextQuarter * 3) % 12;
+        const nextDate = new Date(nextYear, nextMonth, startDate.getDate());
+        taskDates.push(nextDate);
+      }
+      break;
+    case 'Half Yearly':
+      const startHalfYear = Math.floor(startDate.getMonth() / 6);
+      for (let i = 1; i < numberOfTasks; i++) {
+        const nextHalfYear = startHalfYear + i;
+        const nextYear = startDate.getFullYear() + Math.floor(nextHalfYear / 2);
+        const nextMonth = (nextHalfYear * 6) % 12;
+        const nextDate = new Date(nextYear, nextMonth, startDate.getDate());
+        taskDates.push(nextDate);
+      }
+      break;
+    case 'Yearly':
+      const startYear = startDate.getFullYear();
+      for (let i = 1; i < numberOfTasks; i++) {
+        const nextYear = startYear + i;
+        const nextDate = new Date(nextYear, startDate.getMonth(), startDate.getDate());
+        taskDates.push(nextDate);
+      }
+      break;
+    default:
+      break;
+  }
+
+  return taskDates;
+}
+
+getUniqueTaskNames(tasks: any[]): string[] {
+  const uniqueNames: string[] = [];
+  const nameSet = new Set<string>();
+
+  for (const task of tasks) {
+    if (!nameSet.has(task.name)) {
+      nameSet.add(task.name);
+      uniqueNames.push(task.name);
+    }
+  }
+
+  return uniqueNames;
+}
+
 
 }

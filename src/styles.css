@@ -1,17 +1,23 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&amp;display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,500;1,600;1,700&amp;display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 /***** General CSS *****/
 
 body {
   word-break: break-word;
-  font: 16px/25px "poppins";
+  font: 16px/25px var(--montserrat);
   color: #747474;
   overflow-x: hidden;
 }
 
+td , th , a, span , label{
+  text-transform: capitalize;
+}
+
 :root{
     --main-color:#6527BE;
+    --poppins:'Poppins', sans-serif;
+    --rajdhani:'Rajdhani', sans-serif;
+    --montserrat:'Montserrat', sans-serif;
 }
 html {
   overflow-x: hidden;
@@ -187,7 +193,7 @@ p {
 }
 
 h1 {
-  font-family: var(--old);
+  font-family: var(--rajdhani);
   font-size: 55px;
   line-height: 1.2;
   color: #082948;
@@ -196,7 +202,7 @@ h1 {
 }
 
 h2 {
-  font-family: var(--old);
+  font-family: var(--rajdhani);
   font-size: 55px;
   line-height: 1.2;
   color: #082948;
@@ -205,11 +211,11 @@ h2 {
 }
 
 h3 {
-  font-family: var(--mons);
+  font-family: var(--montserrat);
   font-size: 30px;
   line-height: 1.2;
   color: #000000;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 28px;
 }
 
@@ -264,12 +270,6 @@ select {
 
 
 /* sidebar  */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
-  }
   :root {
     /* ===== Colors ===== */
     --body-color: #eef2ff;
@@ -357,7 +357,7 @@ select {
   }
   .sidebar .text {
     font-size: 17px;
-    font-weight: 300;
+    font-weight: 400;
     white-space: nowrap;
     opacity: 1;
   }
@@ -451,6 +451,7 @@ select {
     border-radius: 6px;
     text-decoration: none;
     transition: var(--tran-03);
+    font-weight: 500;
   }
   .sidebar li a:hover {
     background-color: var(--primary-color);
@@ -694,13 +695,18 @@ select {
   }
 
   .sidebar header .logo-text {
-    padding-left: 21px;
+    padding-left: 0px;
 }
   /* header  */
 
 
 
   /* globel  */
+  .form-control:focus, .form-select:focus,.form-select.is-invalid:focus, .was-validated .form-select:invalid:focus ,.form-control.is-invalid:focus, .was-validated .form-control:invalid:focus{
+    box-shadow: unset;
+}
+
+
 
   .globel_wrap{
     margin: 20px;
@@ -860,6 +866,9 @@ select {
   border-radius: 5px;
   padding: 9px;
 }
+.dropdown-item{
+  cursor: pointer;
+}
 
   /* task */
 /* dashboard */
@@ -871,3 +880,96 @@ select {
 }
 /* dashboard */
 
+/* switch  */
+.switch {
+  --secondary-container: #3a4b39;
+  --primary: #84da89;
+  font-size: 17px;
+  position: relative;
+  display: inline-block;
+  width: 3.7em;
+  height: 1.8em;
+ }
+
+ .switch input {
+  display: none;
+  opacity: 0;
+  width: 0;
+  height: 0;
+ }
+
+ .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #c5c2c2;
+  transition: .2s;
+  border-radius: 30px;
+ }
+
+ .slider:before {
+  position: absolute;
+  content: "";
+  height: 1.4em;
+  width: 1.4em;
+  border-radius: 20px;
+  left: 0.2em;
+  bottom: 0.2em;
+  background-color: #efefef;
+  transition: .4s;
+ }
+
+ .switch input:checked + .slider::before {
+  background-color: #ffffff;
+ }
+
+ .switch input:checked + .slider {
+  background-color: #42a63c;
+}
+
+ .switch input:focus + .slider {
+  box-shadow: 0 0 1px var(--secondary-container);
+ }
+
+ .switch input:checked + .slider:before {
+  transform: translateX(1.9em);
+ }
+ label.switch.disable {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+/* switch  */
+
+
+.dropdown-menu {
+  height: 200px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+@media only screen and (min-width: 1200px) and (max-width: 1366px) {
+   table {
+    font-size: 12px;
+  }
+}
+
+
+.filter {
+  display: flex;
+  justify-content: end;
+  margin: 10px 0px;
+  gap: 10px;
+}
+
+.filter input {
+  border: 1px solid var(--main-color);
+  padding: 7px;
+  border-radius: 5px;
+  width: 100%;
+}

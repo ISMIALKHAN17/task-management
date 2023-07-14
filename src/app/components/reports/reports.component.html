@@ -1,14 +1,107 @@
-
 <div class="globel_wrap">
   <div class="loading_wrap" *ngIf="loading">
-      <span class="loader"></span>
-    </div>
+    <span class="loader"></span>
+  </div>
   <div class="globel_header d-flex justify-content-between align-items-center">
-  <h3>Reports</h3>
+    <h3>Reports</h3>
   </div>
   <div class="container">
-    <div>
-      <canvas #chartCanvasRef height="300" width="400"></canvas>
+    <div class="row ">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-body">
+            <h2>Task List</h2>
+            <div class="row ">
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="filterType">Filter Type:</label>
+                  <select id="filterType" class="form-control form-select"  [(ngModel)]="filterType">
+                    <option value="date">Filter by Date</option>
+                    <option value="column">Search by Column</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-7">
+                <div *ngIf="filterType === 'date'">
+                  <div class="row">
+
+                    <div class="form-group col-md-6">
+                      <label for="startDate">Start Date:</label>
+                      <input type="date" id="startDate" class="form-control" [(ngModel)]="startDate">
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label for="endDate">End Date:</label>
+                      <input type="date" id="endDate" class="form-control" [(ngModel)]="endDate">
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="filterType === 'column'">
+                  <div class="form-group">
+                    <label for="searchColumn">Search Column:</label>
+                    <input type="text" id="searchColumn" class="form-control" [(ngModel)]="searchColumn">
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-2 mt-4">
+                <button class="btn btn-primary" (click)="dateFilter()">Search</button>
+              </div>
+            </div>
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Client Name</th>
+                  <th>Assigned Date</th>
+                  <th>Due Date</th>
+                  <th>Task Name</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let task of tasks ; index as i">
+                  <td>{{i+1}}</td>
+                  <td>{{ task.client.name }}</td>
+                  <td>{{ formatDate(task.created_at) }}</td>
+                  <td>{{ formatDate(task.dueDate) }}</td>
+                  <td>{{ task.name }}</td>
+                  <td>{{ task.status }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="pagination d-flex justify-content-center" *ngIf="paginationData.last_page > 1">
+              <nav>
+                <ul class="pagination justify-content-center" >
+                  <li class="page-item">
+                    <a class="page-link" (click)="taskPaginantion(paginationData.current_page-1)"  [ngClass]="{ 'disabled': paginationData.current_page === 1 }" aria-label="First">
+                      <span aria-hidden="true"><i class="fa-solid fa-chevron-left"></i></span>
+                    </a>
+                  </li>
+                  <li class="page-item" *ngFor="let item of pagination">
+                    <a class="page-link" [ngClass]="{'active': paginationData.current_page == item}" (click)="taskPaginantion(item)"  aria-label="First">
+                      <span aria-hidden="true">{{item}}</span>
+                    </a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" (click)="taskPaginantion(paginationData.current_page+1)" [ngClass]="{ 'disabled': paginationData.current_page === paginationData.last_page }"  aria-label="First">
+                      <span aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h2>Task Summary</h2>
+<canvas #chartCanvasRef height="300" width="400"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Rest of the code -->
   </div>
-  </div>
+</div>

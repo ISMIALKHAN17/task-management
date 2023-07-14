@@ -5,39 +5,48 @@
     <div class="globel_header d-flex justify-content-between align-items-center">
 
         <h3><button class="btn btn-primary" *ngIf="taskView" (click)="taskView = false"><i class="fa-solid fa-angle-left"></i></button> Task</h3>
-        <button class="theme_btn" *ngIf="user.role == 'admin'" (click)="open(addTask)"><i class="fas fa-plus"></i> add  </button>
+        <button class="theme_btn" *ngIf="user.role == 'admin'" (click)="open(addTask); checkEditTask = false; taskForm.reset()"><i class="fas fa-plus"></i> add  </button>
     </div>
-    <div class="filter" *ngIf="!taskView && tasks !== [] && !loading">
-      <input type="text" (keyup)="filterTasks()" [(ngModel)]="searchTerm" placeholder="Search">
+    <div class="filter " *ngIf="!taskView && tasks !== []">
+      <input type="text" (keyup.enter)="searchTasks()" [(ngModel)]="searchTerm" placeholder="Search">
     </div>
 
-    <div class="tasksData" *ngIf="!taskView && tasks !== [] && !loading">
+    <div class="tasksData" *ngIf="!taskView  && !loading">
 
     <table class="table table-striped" >
       <thead>
         <tr>
           <th scope="col">#</th>
-          <th scope="col">Name</th>
-          <th scope="col">Due Date</th>
           <th scope="col">Client Name</th>
+          <th scope="col">Due Date</th>
+          <th scope="col">Name</th>
           <th scope="col">Assigned to</th>
           <th scope="col">Description</th>
+          <th scope="col">Status</th>
           <th scope="col">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <ng-container *ngIf="filteredTasks.length > 0; else noResults">
-          <tr *ngFor="let task of filteredTasks; index as i">
-            <td>{{ i + 1 }}</td>
-            <td>{{ task.name }}</td>
-            <td>{{ formatDate(task.dueDate) }}</td>
+        <ng-container *ngIf="tasks.length > 0; else noResults">
+          <tr *ngFor="let task of sortTasksByStatusAndDueDate(tasks); index as i">
+            <td>{{ i+1 }}</td>
             <td>{{ task.client.name }}</td>
+            <td>{{ formatDate(task.dueDate) }}</td>
+            <td>{{ task.name.length > 10 ? task.name.slice(0, 10) + '...' : task.name }}</td>
             <td>{{ task.user.name }}</td>
             <td>{{ task.description.length > 20 ? task.description.slice(0, 20) + '...' : task.description }}</td>
+            <td>{{ task.status }}</td>
             <td>
               <ul class="actions m-0 d-flex  gap-2">
                 <li><i class="far fa-eye" data-toggle="tooltip" title="View" (click)="viewTask(task); taskView=true"></i></li>
+                <li><i class="fa-regular fa-pen-to-square" *ngIf="user.role == 'admin'" (click)="editTask(addTask,task) ; checkEditTask= true" data-toggle="tooltip" title="Delete"></i></li>
                 <li><i class="fas fa-trash-alt" *ngIf="user.role == 'admin'" (click)="deleteTask(task.id)" data-toggle="tooltip" title="Delete"></i></li>
+                <li *ngIf="user.role == 'admin'">
+                  <label class="switch" [ngClass]="{'disable': task.status === 'Completed'}">
+                  <input (change)="disableTask(task,task.status)" [disabled]="task.status === 'Completed'" [checked]="task.status !== 'Disabled'" type="checkbox">
+                  <span class="slider"></span>
+                </label>
+              </li>
               </ul>
             </td>
           </tr>
@@ -54,17 +63,17 @@
       <nav>
         <ul class="pagination justify-content-center" >
           <li class="page-item">
-            <a class="page-link" (click)="taskPaginantion(paginationData.current_page-1)" href="#" [ngClass]="{ 'disabled': paginationData.current_page === 1 }" aria-label="First">
+            <a class="page-link" (click)="taskPaginantion(paginationData.current_page-1)"  [ngClass]="{ 'disabled': paginationData.current_page === 1 }" aria-label="First">
               <span aria-hidden="true"><i class="fa-solid fa-chevron-left"></i></span>
             </a>
           </li>
-          <li class="page-item" *ngFor="let item of pagination">
-            <a class="page-link" (click)="taskPaginantion(item)" href="#" aria-label="First">
+          <li class="page-item"  *ngFor="let item of pagination">
+            <a class="page-link" [ngClass]="{'active': paginationData.current_page == item}" (click)="taskPaginantion(item)"  aria-label="First">
               <span aria-hidden="true">{{item}}</span>
             </a>
           </li>
           <li class="page-item">
-            <a class="page-link" (click)="taskPaginantion(paginationData.current_page+1)" [ngClass]="{ 'disabled': paginationData.current_page === paginationData.last_page }" href="#" aria-label="First">
+            <a class="page-link"  (click)="taskPaginantion(paginationData.current_page+1)" [ngClass]="{ 'disabled': paginationData.current_page === paginationData.last_page }"  aria-label="First">
               <span aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
             </a>
           </li>
@@ -78,18 +87,21 @@
       <div class="row mt-3">
         <div class="col-md-8 task_info" >
           <h3>{{ taskViewData.name }}</h3>
-          <ul>
+          <ul >
             <li>Assigned Date: <b>{{ formatDate(taskViewData.created_at) }}</b></li>
             <li>Due Date: <b>{{ formatDate(taskViewData.dueDate) }}</b></li>
             <li>Client: <b>{{ taskViewData.client.name }}</b></li>
             <li>Status: <b>{{ taskViewData.status }}</b></li>
             <li>Task Repetition : <b>{{ taskViewData.repeatTask }}</b></li>
+            <li>Date Completed : <b *ngIf="taskViewData.dateCompleted === 'Not added'">Not added</b><b *ngIf="taskViewData.dateCompleted !== 'Not added'">{{formatDate(taskViewData.dateCompleted) }}</b></li>
+            <li>Date Mailed : <b *ngIf="taskViewData.dateMailed === 'Not added'">Not added</b><b *ngIf="taskViewData.dateMailed !== 'Not added'">{{formatDate(taskViewData.dateMailed) }}</b></li>
+            <li>Date E-Filed : <b *ngIf="taskViewData.dateFiled  === 'Not added'">Not added</b><b *ngIf="taskViewData.dateFiled  !== 'Not added'">{{formatDate(taskViewData.dateFiled )}}</b></li>
           </ul>
+          <h4>Description</h4>
           <p>{{ taskViewData.description }}</p>
-          <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-success" *ngIf="taskViewData.status !== 'Completed'" (click)="updateTask()">Mark as completed</button>
-            <button class="btn btn-primary" *ngIf="user.role == 'admin'" (click)="editTask(addTask,taskViewData)"><i class="fa-regular fa-pen-to-square"></i> Edit</button>
-            <button class="btn btn-danger" *ngIf="user.role == 'admin'" (click)="deleteTask(taskViewData.id)"><i class="fa-solid fa-trash-can"></i> Delete</button>
+          <div class="d-flex align-items-center gap-2" *ngIf="!chatLoading && user.role !== 'admin'">
+            <button class="btn btn-success" [ngClass]="{'disabled': taskViewData.status === 'Disabled'}" *ngIf="taskViewData.status !== 'Completed'" (click)="updateTask()">Mark as completed</button>
+            <button class="btn btn-primary"  (click)="editeDates(taskViewData,dateFormModal)">Finalize Task</button>
           </div>
         </div>
         <div class="col-md-4">
@@ -132,116 +144,157 @@
             <i (click)="d('Cross click')" class="far fa-times-circle"></i>
         </div>
         <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
-            <div class="row">
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="name">Task Name:</label>
-                    <input type="text" id="name" formControlName="name" class="form-control"
-                      [ngClass]="{ 'is-invalid': taskForm.get('name').invalid && taskForm.get('name').touched }">
-                    <div class="invalid-feedback" *ngIf="taskForm.get('name').invalid && taskForm.get('name').touched">
-                      Task Name is required.
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="dueDate">Due Date:</label>
-                    <input type="date" id="dueDate" formControlName="dueDate" class="form-control"
-                      [ngClass]="{ 'is-invalid': taskForm.get('dueDate').invalid && taskForm.get('dueDate').touched }">
-                    <div class="invalid-feedback" *ngIf="taskForm.get('dueDate').invalid && taskForm.get('dueDate').touched">
-                      Due Date is required.
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group mb-2">
-                    <label for="client_id">Client Name:</label>
-                    <select id="client_id" formControlName="client_id" class="form-control"
-                      [ngClass]="{ 'is-invalid': taskForm.get('client_id').invalid && taskForm.get('client_id').touched }">
-                      <option value="select" disabled selected>Select Client</option>
-                      <option *ngFor="let clientName of clients" [value]="clientName.id">{{ clientName.name }}</option>
-                    </select>
-                    <div class="invalid-feedback" *ngIf="taskForm.get('client_id').invalid && taskForm.get('client_id').touched">
-                      Client Name is required.
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group mb-2">
-                    <label for="user_id">Staff Name:</label>
-                    <select id="user_id" formControlName="user_id" class="form-control"
-                      [ngClass]="{ 'is-invalid': taskForm.get('user_id').invalid && taskForm.get('user_id').touched }">
-                      <option value="select" disabled selected>Select Staff</option>
-                      <option *ngFor="let staffName of staff" [value]="staffName.id">{{ staffName.name }}</option>
-                    </select>
-                    <div class="invalid-feedback" *ngIf="taskForm.get('user_id').invalid && taskForm.get('user_id').touched">
-                      Staff Name is required.
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-2">
-                      <label for="repeatTask">Repeat Task:</label>
-                      <select id="repeatTask" formControlName="repeatTask" class="form-control"
-                        [ngClass]="{ 'is-invalid': taskForm.get('repeatTask').invalid && taskForm.get('repeatTask').touched }">
-                        <option value="null" disabled selected>Select Repeat Interval</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="biweekly">Biweekly</option>
-                        <option value="monthly">Monthly</option>
-                      </select>
-                      <div class="invalid-feedback" *ngIf="taskForm.get('repeatTask').invalid && taskForm.get('repeatTask').touched">
-                        Repeat Task selection is required.
-                      </div>
-                    </div>
-                  </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-2">
-                      <label for="status">Task Status:</label>
-                      <select id="status" formControlName="status" class="form-control"
-                        [ngClass]="{ 'is-invalid': taskForm.get('status').invalid && taskForm.get('status').touched }">
-
-                        <option value="Completed">Completed</option>
-                        <option value="Open">Open</option>
-                        <option value="Disabled">Disabled</option>
-
-                      </select>
-                      <div class="invalid-feedback" *ngIf="taskForm.get('status').invalid && taskForm.get('status').touched">
-                        Repeat Task selection is required.
-                      </div>
-                    </div>
-                  </div>
-
-                <div class="col-md-12">
-                  <div class="form-group mb-2">
-                    <label for="description">Description:</label>
-                    <textarea id="description" formControlName="description" class="form-control"
-                      [ngClass]="{ 'is-invalid': taskForm.get('description').invalid && taskForm.get('description').touched }"></textarea>
-                    <div class="invalid-feedback" *ngIf="taskForm.get('description').invalid && taskForm.get('description').touched">
-                      Description is required.
-                    </div>
-                  </div>
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <div class="form-group">
+                <label for="name">Task Name:</label>
+                <div class="dropdown" (focusin)="showDropdown = true" (focusout)="hideDropdown()">
+                  <input type="text" autofocus="disable" formControlName="name" class="form-control"
+                    [ngClass]="{ 'is-invalid': taskForm.get('name').invalid && taskForm.get('name').touched }">
+                  <ul class="dropdown-menu d-block w-100" aria-labelledby="name" *ngIf="showDropdown">
+                    <li *ngFor="let item of uniqueTaskNames" class="dropdown-item" (click)="selectExistingTask(item, $event)">{{item}}</li>
+                  </ul>
                 </div>
 
-
-
-
-                <div class="col-md-12">
-                  <button type="submit" class="btn btn-primary">Submit</button>
+                <div class="invalid-feedback" *ngIf="taskForm.get('name').invalid && taskForm.get('name').touched">
+                  Task Name is required.
                 </div>
               </div>
+            </div>
+
+            <div class="col-md-6 mb-2">
+              <div class="form-group">
+                <label for="dueDate">Due Date:</label>
+                <input type="date" id="dueDate" formControlName="dueDate" class="form-control"
+                  [ngClass]="{ 'is-invalid': taskForm.get('dueDate').invalid && taskForm.get('dueDate').touched }">
+                <div class="invalid-feedback" *ngIf="taskForm.get('dueDate').invalid && taskForm.get('dueDate').touched">
+                  Due Date is required.
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-2">
+              <div class="form-group">
+                <label for="client_id">Client Name:</label>
+                <div class="input-group">
+                  <select id="client_id" formControlName="client_id" class="form-select"
+                    [ngClass]="{ 'is-invalid': taskForm.get('client_id').invalid && taskForm.get('client_id').touched }">
+                    <option value="select" disabled selected>Select Client</option>
+                    <option *ngFor="let clientName of clients" [disabled]="clientName.status === 'Disabled'" [value]="clientName.id">{{ clientName.name }} <span *ngIf="clientName.status === 'Disabled'">(Disabled)</span></option>
+                  </select>
+
+                </div>
+                <div class="invalid-feedback" *ngIf="taskForm.get('client_id').invalid && taskForm.get('client_id').touched">
+                  Client Name is required.
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-2">
+              <div class="form-group">
+                <label for="user_id">Staff Name:</label>
+                <div class="input-group">
+                  <select id="user_id" formControlName="user_id" class="form-select"
+                    [ngClass]="{ 'is-invalid': taskForm.get('user_id').invalid && taskForm.get('user_id').touched }">
+                    <option value="select" disabled selected>Select Staff</option>
+                    <option *ngFor="let staffName of staff" [disabled]="staffName.status === 'Disabled'" [value]="staffName.id">{{ staffName.name }} <span *ngIf="staffName.status === 'Disabled'">(Disabled)</span></option>
+                  </select>
+
+                </div>
+                <div class="invalid-feedback" *ngIf="taskForm.get('user_id').invalid && taskForm.get('user_id').touched">
+                  Staff Name is required.
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-2">
+              <div class="form-group">
+                <label for="repeatTask">Repeat Task:</label>
+                <div class="input-group">
+                  <select  id="repeatTask" formControlName="repeatTask" class="form-select"
+                    [ngClass]="{ 'is-invalid': taskForm.get('repeatTask').invalid && taskForm.get('repeatTask').touched }">
+                    <option value="null" disabled selected>Select Repeat Interval</option>
+                    <option value="Daily">Daily</option>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Biweekly">Biweekly</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Quarterly">Quarterly</option>
+                    <option value="Half Yearly">Half Yearly</option>
+                    <option value="Yearly">Yearly</option>
+                  </select>
+                </div>
+                <div class="invalid-feedback" *ngIf="taskForm.get('repeatTask').invalid && taskForm.get('repeatTask').touched">
+                  Repeat Task selection is required.
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 mb-2">
+              <div class="form-group">
+                <label for="repeatTaskDate">Task Repeation :</label>
+                <input  type="date" id="repeatTaskDate" formControlName="repeatTaskDate" class="form-control"
+                  [ngClass]="{ 'is-invalid': taskForm.get('repeatTaskDate').invalid && taskForm.get('repeatTaskDate').touched }">
+                <div class="invalid-feedback" *ngIf="taskForm.get('repeatTaskDate').invalid && taskForm.get('repeatTaskDate').touched">
+                  Due Date is required.
+                </div>
+              </div>
+            </div>
 
 
-          </form>
 
+            <div class="col-md-12 mb-2">
+              <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" formControlName="description" class="form-control"
+                  [ngClass]="{ 'is-invalid': taskForm.get('description').invalid && taskForm.get('description').touched }"></textarea>
+                <div class="invalid-feedback" *ngIf="taskForm.get('description').invalid && taskForm.get('description').touched">
+                  Description is required.
+                </div>
+              </div>
+            </div>
+            <div class="col-md-12 mt-2">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+        </form>
     </div>
 </ng-template>
 
-<!-- <ng-template #addMemo let-c="close" let-d="dismiss">
+<ng-template #dateFormModal let-c="close" let-d="dismiss">
   <div class="addModal">
     <div class="modalHeader d-flex justify-content-between align-items-center">
-        <h4 class="m-0">Add Memo</h4>
+        <h4 class="m-0">Finalize Task</h4>
         <i (click)="d('Cross click')" class="far fa-times-circle"></i>
     </div>
+    <form [formGroup]="dateForm" (ngSubmit)="onDateFormSubmit()">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="dateCompleted">Date Completed:</label>
+            <input type="date" formControlName="dateCompleted" id="dateCompleted" class="form-control">
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="dateMailed">Date Mailed:</label>
+            <input type="date" formControlName="dateMailed" id="dateMailed" class="form-control">
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="dateFiled">Date E-Filed:</label>
+            <input type="date" formControlName="dateFiled" id="dateFiled" class="form-control">
+          </div>
+        </div>
+
+        <div class="col-md-12 mt-3">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </form>
+
+
     </div>
-</ng-template> -->
+</ng-template>
 

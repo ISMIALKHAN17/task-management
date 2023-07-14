@@ -7,10 +7,10 @@
       <header>
         <div class="image-text">
           <div class="image">
-            <span class="name">CPA </span>
+            <img src="../../../assets/img/logo (1).png" alt="">
           </div>
           <div class="text logo-text">
-            <span class="name"> Workflow <br> Management</span>
+            <img src="../../../assets/img/logo (2).png" alt="">
           </div>
         </div>
         <i class='fa-solid fa-chevron-right toggle' (click)="toggleSidebar()"></i>
@@ -18,7 +18,7 @@
       <div class="menu-bar">
         <div class="menu">
           <ul class="menu-links">
-            <li class="nav-link" routerLinkActive="active">
+            <li class="nav-link" *ngIf="user.role === 'admin'" routerLinkActive="active">
               <a routerLink="dashboard">
                 <i class="fa-solid fa-chart-pie icon"></i>
                 <span class="text nav-text">Dashboard</span>
@@ -31,13 +31,13 @@
               </a>
             </li>
 
-            <li class="nav-link" routerLinkActive="active">
+            <li class="nav-link" *ngIf="user.role === 'admin'" routerLinkActive="active">
               <a routerLink="staff">
                 <i class="fas fa-clipboard-user icon"></i>
                 <span class="text nav-text">Staff</span>
               </a>
             </li>
-            <li class="nav-link" routerLinkActive="active">
+            <li class="nav-link" *ngIf="user.role === 'admin'" routerLinkActive="active">
               <a routerLink="clients">
                 <i class="fas fa-user-tie icon"></i>
                 <span class="text nav-text">Clients</span>
@@ -66,9 +66,9 @@
         <div class="header d-flex justify-content-between align-items-center">
             <h2></h2>
             <div class="header_side d-flex gap-2 align-items-center">
-                <div class="notification">
+                <!-- <div class="notification">
                     <i class="fa-regular fa-bell"></i>
-                </div>
+                </div> -->
                 <div class="user d-flex align-items-center gap-2">
                     <div class="user_image">
                         <img src="../../../assets/img/user_placeholder.jpg" alt="">

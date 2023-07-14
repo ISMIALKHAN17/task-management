@@ -34,6 +34,15 @@ export class LoginComponent implements OnInit {
     } else {
       this.req.post('login', this.loginForm.value).subscribe(
         (res: any) => {
+          if(res.error == 'Invalid credentials'){
+            this.loading = false
+            Swal.fire({
+              icon: 'error',
+              title: 'Login Failed',
+              text: 'Invalid credentials',
+              showConfirmButton: true
+            });
+          }else{
           this.loading = false
           // Display success alert
           Swal.fire({
@@ -47,7 +56,8 @@ export class LoginComponent implements OnInit {
           localStorage.setItem('loginStatus', 'true');
           localStorage.setItem('user', JSON.stringify(res.user));
           console.log(res);
-        },
+        }
+      },
         (error: any) => {
           this.loading = false
           // Display error alert
@@ -63,5 +73,7 @@ export class LoginComponent implements OnInit {
       );
     }
   }
+
+
 
 }

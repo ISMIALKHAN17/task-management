@@ -6,6 +6,9 @@
         <h3>Staff</h3>
         <button class="theme_btn" (click)="open(addStaff)"><i class="fas fa-plus"></i> Add </button>
     </div>
+    <div class="filter">
+      <input type="text" (keyup.enter)="searchTasks()" [(ngModel)]="searchTerm" placeholder="Search">
+    </div>
 <table class="table table-striped">
 	<thead>
 		<tr>
@@ -25,13 +28,37 @@
             <td>
                 <ul class="actions m-0 d-flex  gap-2">
                     <li><i class="far fa-eye" (click)="viewStaff(updateStaff,staff)" data-toggle="tooltip" title="View"></i></li>
-                    <li><i class="fas fa-trash-alt" (click)="deleteStaff(staff.id)" data-toggle="tooltip" title="Delete"></i></li>
-                    <li><i class="fa-solid fa-key" (click)="deleteStaff(staff.id)" data-toggle="tooltip" title="Update Password"></i></li>
+                    <li><i class="fa-solid fa-key" (click)="openUpdateEmployeePassword(updateStaffPassword,staff)" data-toggle="tooltip" title="Update Password"></i></li>
+                    <label class="switch">
+                      <input (change)="disableUser(staff)"  [checked]="staff.status !== 'disabled'" type="checkbox">
+                      <span class="slider"></span>
+                    </label>
                 </ul>
             </td>
         </tr>
 	</tbody>
 </table>
+<div class="pagination d-flex justify-content-center" *ngIf="paginationData.last_page > 1">
+  <nav>
+    <ul class="pagination justify-content-center" >
+      <li class="page-item">
+        <a class="page-link" (click)="taskPaginantion(paginationData.current_page-1)"  [ngClass]="{ 'disabled': paginationData.current_page === 1 }" aria-label="First">
+          <span aria-hidden="true"><i class="fa-solid fa-chevron-left"></i></span>
+        </a>
+      </li>
+      <li class="page-item"  *ngFor="let item of pagination">
+        <a class="page-link" [ngClass]="{'active': paginationData.current_page == item}" (click)="taskPaginantion(item)"  aria-label="First">
+          <span aria-hidden="true">{{item}}</span>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link"  (click)="taskPaginantion(paginationData.current_page+1)" [ngClass]="{ 'disabled': paginationData.current_page === paginationData.last_page }"  aria-label="First">
+          <span aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
 </div>
 
 <ng-template #addStaff let-c="close" let-d="dismiss">
@@ -184,13 +211,13 @@
         <i (click)="d('Cross click')" class="far fa-times-circle"></i>
     </div>
    <div class="staffModal">
-    <form [formGroup]="updateStaffForm" (ngSubmit)="updateStafff()">
+    <form [formGroup]="updateStaffPass" (ngSubmit)="UpdateEmployeePassword()">
         <div class="row mt-2">
-          <div class="col-md-6">
+          <div class="col-md-12">
             <div class="form-group mb-2">
-              <label for="password">Password:</label>
-              <input type="password" class="form-control" formControlName="password" [ngClass]="{ 'is-invalid': staffForm.get('password').invalid && staffForm.get('password').touched }">
-              <div class="invalid-feedback" *ngIf="staffForm.get('password').errors && staffForm.get('password').touched">
+              <label for="password">New Password:</label>
+              <input type="password" class="form-control" formControlName="password" [ngClass]="{ 'is-invalid': updateStaffPass.get('password').invalid && updateStaffPass.get('password').touched }">
+              <div class="invalid-feedback" *ngIf="updateStaffPass.get('password').errors && updateStaffPass.get('password').touched">
                 Password is required.
               </div>
             </div>

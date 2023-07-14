@@ -1,18 +1,6 @@
 .taskView h3{
   text-transform: capitalize;
 }
-.filter {
-  display: flex;
-  justify-content: end;
-  margin: 10px 0px;
-}
-
-.filter input {
-  border: 1px solid var(--main-color);
-  padding: 7px;
-  border-radius: 5px;
-  width: 100%;
-}
 
 
 .memo-wrap {
@@ -77,3 +65,14 @@
 .memo-wrap:hover i {
   transform: translateX(0px);
 }
+
+
+.task_info ul {
+  column-count: 2;
+  background: #eef2ff;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+
+
