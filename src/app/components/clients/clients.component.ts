@@ -18,6 +18,8 @@ export class ClientsComponent {
   pagination:any = []
   paginationData:any
   searchTerm:any = []
+  isAscending: boolean = true; // Flag to track the sort order
+sortColumn: string = ''; // Track the currently sorted column
 
   constructor(private modalService: NgbModal , private req:RequestService) {
     // Constructor logic here
@@ -186,6 +188,26 @@ else if (this.clientForm.valid && this.editClient) {
     );
   }
 
+
+sortClients(column: string) {
+  if (this.sortColumn === column) {
+    this.isAscending = !this.isAscending; // Toggle the sort order if it's the same column
+  } else {
+    this.sortColumn = column;
+    this.isAscending = true; // Reset the sort order if it's a different column
+  }
+
+  // Perform the sorting using the Array sort method
+  this.clients = this.clients.sort((a: any, b: any) => {
+    if (a[column] > b[column]) {
+      return this.isAscending ? 1 : -1;
+    } else if (a[column] < b[column]) {
+      return this.isAscending ? -1 : 1;
+    } else {
+      return 0;
+    }
+  });
+}
   searchTasks(){
     this.loading = true
     this.req.post('client/search',{search:this.searchTerm}).subscribe((res:any)=>{

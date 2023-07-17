@@ -17,18 +17,18 @@
       <thead>
         <tr>
           <th scope="col">#</th>
-          <th scope="col">Client Name</th>
-          <th scope="col">Due Date</th>
-          <th scope="col">Name</th>
-          <th scope="col">Assigned to</th>
-          <th scope="col">Description</th>
-          <th scope="col">Status</th>
+          <th class="pointerC" scope="col" (click)="sortTasks('client.name')">Client Name</th>
+          <th class="pointerC" scope="col" (click)="sortTasks('dueDate')">Due Date</th>
+          <th class="pointerC" scope="col" (click)="sortTasks('name')">Name</th>
+          <th class="pointerC" scope="col" (click)="sortTasks('user.name')">Assigned to</th>
+          <th class="pointerC" scope="col" (click)="sortTasks('description')">Description</th>
+          <th class="pointerC" scope="col" (click)="sortTasks('status')">Status</th>
           <th scope="col">Actions</th>
         </tr>
       </thead>
       <tbody>
         <ng-container *ngIf="tasks.length > 0; else noResults">
-          <tr *ngFor="let task of sortTasksByStatusAndDueDate(tasks); index as i">
+          <tr *ngFor="let task of tasks; index as i">
             <td>{{ i+1 }}</td>
             <td>{{ task.client.name }}</td>
             <td>{{ formatDate(task.dueDate) }}</td>
@@ -40,7 +40,7 @@
               <ul class="actions m-0 d-flex  gap-2">
                 <li><i class="far fa-eye" data-toggle="tooltip" title="View" (click)="viewTask(task); taskView=true"></i></li>
                 <li><i class="fa-regular fa-pen-to-square" *ngIf="user.role == 'admin'" (click)="editTask(addTask,task) ; checkEditTask= true" data-toggle="tooltip" title="Delete"></i></li>
-                <li><i class="fas fa-trash-alt" *ngIf="user.role == 'admin'" (click)="deleteTask(task.id)" data-toggle="tooltip" title="Delete"></i></li>
+                <!-- <li><i class="fas fa-trash-alt" *ngIf="user.role == 'admin'" (click)="deleteTask(task.id)" data-toggle="tooltip" title="Delete"></i></li> -->
                 <li *ngIf="user.role == 'admin'">
                   <label class="switch" [ngClass]="{'disable': task.status === 'Completed'}">
                   <input (change)="disableTask(task,task.status)" [disabled]="task.status === 'Completed'" [checked]="task.status !== 'Disabled'" type="checkbox">
@@ -53,7 +53,7 @@
         </ng-container>
         <ng-template #noResults>
           <tr>
-            <td colspan="7" class="text-center">No results found.</td>
+            <td colspan="8" class="text-center">No results found.</td>
           </tr>
         </ng-template>
       </tbody>

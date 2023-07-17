@@ -9,39 +9,40 @@
     <div class="filter">
       <input type="text" (keyup.enter)="searchTasks()" [(ngModel)]="searchTerm" placeholder="Search">
     </div>
-<table class="table table-striped">
-	<thead>
-		<tr>
-			<th scope="col">#</th>
-			<th scope="col">Name</th>
-			<th scope="col">Email</th>
-			<th scope="col">Phone number</th>
-			<th scope="col">Address</th>
-			<th scope="col">Action</th>
-		</tr>
-	</thead>
-	<tbody>
-        <tr *ngFor="let client of clients">
-            <td>1</td>
-            <td>{{client.name}}</td>
-            <td>{{client.email}}</td>
-            <td>{{client.phoneNumber}}</td>
-            <td>{{client.address}}</td>
-            <td>
-                <ul class="actions m-0 d-flex  gap-2">
-                    <li><i class="far fa-eye" (click)="viewClient(addStaff,client)" data-toggle="tooltip" title="View"></i></li>
-                    <li>
-                      <label class="switch">
-                        <input (change)="disableClient(client)"  [checked]="client.status !== 'Disabled'" type="checkbox">
-                        <span class="slider"></span>
-                      </label>
-                    </li>
-                    <!-- <li><i class="fas fa-trash-alt" (click)="deleteStaff(client.id)" data-toggle="tooltip" title="Delete"></i></li> -->
-                </ul>
-            </td>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th class="pointerC" scope="col" (click)="sortClients('name')">Name</th>
+          <th class="pointerC" scope="col" (click)="sortClients('email')">Email</th>
+          <th class="pointerC" scope="col" (click)="sortClients('phoneNumber')">Phone number</th>
+          <th class="pointerC" scope="col" (click)="sortClients('address')">Address</th>
+          <th scope="col">Action</th>
         </tr>
-	</tbody>
-</table>
+      </thead>
+      <tbody>
+        <tr *ngFor="let client of clients">
+          <td>1</td>
+          <td>{{ client.name }}</td>
+          <td>{{ client.email }}</td>
+          <td>{{ client.phoneNumber }}</td>
+          <td>{{ client.address }}</td>
+          <td>
+            <ul class="actions m-0 d-flex gap-2">
+              <li><i class="far fa-eye" (click)="viewClient(addStaff, client)" data-toggle="tooltip" title="View"></i></li>
+              <li>
+                <label class="switch">
+                  <input (change)="disableClient(client)" [checked]="client.status !== 'Disabled'" type="checkbox">
+                  <span class="slider"></span>
+                </label>
+              </li>
+              <!-- <li><i class="fas fa-trash-alt" (click)="deleteStaff(client.id)" data-toggle="tooltip" title="Delete"></i></li> -->
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
 <div class="pagination d-flex justify-content-center" *ngIf="paginationData.last_page > 1">
   <nav>
     <ul class="pagination justify-content-center" >

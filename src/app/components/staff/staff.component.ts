@@ -20,6 +20,8 @@ export class StaffComponent {
   paginationData:any
   pagination:any=[]
   searchTerm:any
+  isAscending: boolean = true; // Flag to track the sort order
+sortColumn: string = '';
 
   constructor(private modalService: NgbModal , private formBuilder: FormBuilder , private req:RequestService) {
     // Constructor logic here
@@ -291,6 +293,26 @@ export class StaffComponent {
       this.paginationData = res.data
       this.loading = false
     })
+  }
+
+  sortStaff(column: string) {
+    if (this.sortColumn === column) {
+      this.isAscending = !this.isAscending; // Toggle the sort order if it's the same column
+    } else {
+      this.sortColumn = column;
+      this.isAscending = true; // Reset the sort order if it's a different column
+    }
+
+    // Perform the sorting using the Array sort method
+    this.staff = this.staff.sort((a: any, b: any) => {
+      if (a[column] > b[column]) {
+        return this.isAscending ? 1 : -1;
+      } else if (a[column] < b[column]) {
+        return this.isAscending ? -1 : 1;
+      } else {
+        return 0;
+      }
+    });
   }
 
 }

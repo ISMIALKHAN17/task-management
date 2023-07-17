@@ -17,6 +17,8 @@ export class ReportsComponent {
   paginationData:any
   chartData:any
   user:any
+  isAscending: boolean = true; // Flag to track the sort order
+sortColumn: string = ''; // Track the currently sorted column
   @ViewChild('chartCanvasRef', { static: false }) chartCanvasRef!: ElementRef;
   chart: any;
   constructor(private req:RequestService , private datePipe:DatePipe){}
@@ -136,6 +138,26 @@ export class ReportsComponent {
   formatDate(date: string): string {
     const formattedDate = this.datePipe.transform(date, 'MM/dd/yyyy');
     return formattedDate || '';
+  }
+
+  sortTasks(column: string) {
+    if (this.sortColumn === column) {
+      this.isAscending = !this.isAscending; // Toggle the sort order if it's the same column
+    } else {
+      this.sortColumn = column;
+      this.isAscending = true; // Reset the sort order if it's a different column
+    }
+
+    // Perform the sorting using the Array sort method
+    this.tasks = this.tasks.sort((a: any, b: any) => {
+      if (a[column] > b[column]) {
+        return this.isAscending ? 1 : -1;
+      } else if (a[column] < b[column]) {
+        return this.isAscending ? -1 : 1;
+      } else {
+        return 0;
+      }
+    });
   }
 
 }

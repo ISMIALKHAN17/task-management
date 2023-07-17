@@ -32,6 +32,9 @@ export class TaskComponent {
   showDropdown = false;
   tasksData:any = []
   uniqueTaskNames:any = []
+  sortColumn: string = '';
+  isAscending: boolean = true;
+  isTaskEnabled: boolean = true;
 
 
   constructor(private req:RequestService , private formBuilder: FormBuilder , private modalService: NgbModal , private datePipe:DatePipe){}
@@ -502,81 +505,84 @@ searchTasks(){
   })
 }
 
-disableTask(task:any , status:any){
-var today = new Date();
-var dueDate = new Date(task.dueDate);
-let Taskstatus = status
-if (Taskstatus === 'Disabled' && dueDate < today) {
-  Taskstatus = 'Incomplete'
-}
-else if (Taskstatus === 'Disabled' && dueDate > today){
-  Taskstatus = 'Due'
-}
-else {
-  Taskstatus = 'Disabled'
-}
-this.loading = true
-if(Taskstatus === 'Disabled'){
-  this.req.post('task/modify', { type:task.type, status: Taskstatus , dueDate:task.dueDate}).subscribe(
-    (res: any) => {
-        this.loading = false
-        this.getClients();
-        this.getStaff();
-        this.getTasks();
-      },
-      (error: any) => {
-        console.error('Error updating task:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to update task. Please try again later.',
-        });
-      }
-    );
-}else{
+disableTask(task: any, status: any) {
+  var today = new Date();
+  var dueDate = new Date(task.dueDate);
+  let taskStatus = status;
+  let previousStatus = task.status;
+  let previousCheckboxState = task.status !== 'Disabled';
 
-  this.req.post('task/update', { id:task.id, status: Taskstatus }).subscribe(
-  (res: any) => {
-      this.loading = false
-      this.getClients();
-      this.getStaff();
-      this.getTasks();
-    },
-    (error: any) => {
-      console.error('Error updating task:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to update task. Please try again later.',
-      });
-    }
-  );
-}
-}
+  if (taskStatus === 'Disabled' && dueDate < today) {
+    taskStatus = 'Incomplete';
+  } else if (taskStatus === 'Disabled' && dueDate > today) {
+    taskStatus = 'Due';
+  } else {
+    taskStatus = 'Disabled';
+  }
 
+  // Function to handle the task status update
+  const updateTaskStatus = () => {
+    this.loading = true;
+    if (taskStatus === 'Disabled') {
+      this.req.post('task/modify', { type: task.type, status: taskStatus, dueDate: task.dueDate }).subscribe(
+        (res: any) => {
+          this.loading = false;
+          this.getClients();
+          this.getStaff();
+          this.getTasks();
+        },
+        (error: any) => {
+          console.error('Error updating task:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update task. Please try again later.'
+          });
+        }
+      );
+    } else {
+      this.req.post('task/update', { id: task.id, status: taskStatus }).subscribe(
+        (res: any) => {
+          this.loading = false;
+          this.getClients();
+          this.getStaff();
+          this.getTasks();
+        },
+        (error: any) => {
+          console.error('Error updating task:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update task. Please try again later.'
+          });
+        }
+      );
+    }
+  };
 
-sortTasksByStatusAndDueDate(tasks: any[]): any[] {
-  return tasks.sort((a, b) => {
-    // Sort by status (incomplete tasks first)
-    if (a.status !== 'Completed' && b.status === 'Completed') {
-      return -1;
+  Swal.fire({
+    icon: 'warning',
+    title: 'Confirmation',
+    text: 'Are you sure you want to update the task status?',
+    showCancelButton: true,
+    confirmButtonText: 'Yes',
+    cancelButtonText: 'No'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      updateTaskStatus();
+    } else {
+      // Revert back to the previous task status and checkbox state
+      this.getTasks()
     }
-    if (a.status === 'Completed' && b.status !== 'Completed') {
-      return 1;
-    }
-    if (a.status === 'Disabled' && b.status !== 'Disabled') {
-      return 1;
-    }
-    if (a.status !== 'Disabled' && b.status === 'Disabled') {
-      return -1;
-    }
-
-    // Sort by due date
-    const dateA = new Date(a.dueDate);
-    const dateB = new Date(b.dueDate);
-    return dateA.getTime() - dateB.getTime();
   });
 }
+
+
+
+
+
+
+
 
 
 hideDropdown() {
@@ -744,6 +750,74 @@ getUniqueTaskNames(tasks: any[]): string[] {
   }
 
   return uniqueNames;
+}
+
+sortTasks(column: string) {
+  if (this.sortColumn === column) {
+    this.isAscending = !this.isAscending; // Toggle the sort order if it's the same column
+  } else {
+    this.sortColumn = column;
+    this.isAscending = true; // Set the initial sort order to ascending for a different column
+  }
+
+  // Perform the sorting
+  if (column === 'status') {
+    this.tasks = this.sortTasksByStatusAndDueDate(this.tasks);
+  } else {
+    this.tasks = this.tasks.sort((a:any, b:any) => {
+      const valA = this.getPropertyValue(a, column);
+      const valB = this.getPropertyValue(b, column);
+
+      if (valA > valB) {
+        return this.isAscending ? 1 : -1;
+      } else if (valA < valB) {
+        return this.isAscending ? -1 : 1;
+      } else {
+        return 0;
+      }
+    });
+  }
+}
+
+
+// Helper function to get the property value of an object dynamically
+getPropertyValue(obj: any, path: string) {
+  const properties = path.split('.');
+  let value = obj;
+
+  for (const prop of properties) {
+    value = value[prop];
+
+    if (typeof value === 'undefined') {
+      break;
+    }
+  }
+
+  return value;
+}
+
+// Function to sort tasks by status and due date
+sortTasksByStatusAndDueDate(tasks: any[]): any[] {
+  return tasks.sort((a, b) => {
+    // Sort by status (incomplete tasks first)
+    if (a.status !== 'Completed' && b.status === 'Completed') {
+      return -1;
+    }
+    if (a.status === 'Completed' && b.status !== 'Completed') {
+      return 1;
+    }
+    if (a.status === 'Disabled' && b.status !== 'Disabled') {
+      return 1;
+    }
+    if (a.status !== 'Disabled' && b.status === 'Disabled') {
+      return -1;
+    }
+
+    // Sort by due date
+    const dateA = new Date(a.dueDate);
+    const dateB = new Date(b.dueDate);
+    return dateA.getTime() - dateB.getTime();
+  });
 }
 
 

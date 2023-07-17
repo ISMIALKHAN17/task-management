@@ -9,35 +9,36 @@
     <div class="filter">
       <input type="text" (keyup.enter)="searchTasks()" [(ngModel)]="searchTerm" placeholder="Search">
     </div>
-<table class="table table-striped">
-	<thead>
-		<tr>
-			<th scope="col">#</th>
-			<th scope="col">Name</th>
-			<th scope="col">Email</th>
-			<th scope="col">User Name</th>
-			<th scope="col">Action</th>
-		</tr>
-	</thead>
-	<tbody>
-        <tr *ngFor="let staff of staff ; index as i ">
-            <td>{{i + 1}}</td>
-            <td>{{staff.name}}</td>
-            <td>{{staff.email}}</td>
-            <td>{{staff.userName}}</td>
-            <td>
-                <ul class="actions m-0 d-flex  gap-2">
-                    <li><i class="far fa-eye" (click)="viewStaff(updateStaff,staff)" data-toggle="tooltip" title="View"></i></li>
-                    <li><i class="fa-solid fa-key" (click)="openUpdateEmployeePassword(updateStaffPassword,staff)" data-toggle="tooltip" title="Update Password"></i></li>
-                    <label class="switch">
-                      <input (change)="disableUser(staff)"  [checked]="staff.status !== 'disabled'" type="checkbox">
-                      <span class="slider"></span>
-                    </label>
-                </ul>
-            </td>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th class="pointerC" scope="col" (click)="sortStaff('name')">Name </th>
+          <th class="pointerC" scope="col" (click)="sortStaff('email')">Email </th>
+          <th class="pointerC" scope="col" (click)="sortStaff('userName')">User Name </th>
+          <th scope="col">Action</th>
         </tr>
-	</tbody>
-</table>
+      </thead>
+      <tbody>
+        <tr *ngFor="let staffMember of staff; index as i">
+          <td>{{ i + 1 }}</td>
+          <td>{{ staffMember.name }}</td>
+          <td>{{ staffMember.email }}</td>
+          <td>{{ staffMember.userName }}</td>
+          <td>
+            <ul class="actions m-0 d-flex gap-2">
+              <li><i class="far fa-eye" (click)="viewStaff(updateStaff, staffMember)" data-toggle="tooltip" title="View"></i></li>
+              <li><i class="fa-solid fa-key" (click)="openUpdateEmployeePassword(updateStaffPassword, staffMember)" data-toggle="tooltip" title="Update Password"></i></li>
+              <label class="switch">
+                <input (change)="disableUser(staffMember)" [checked]="staffMember.status !== 'Disabled'" type="checkbox">
+                <span class="slider"></span>
+              </label>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
 <div class="pagination d-flex justify-content-center" *ngIf="paginationData.last_page > 1">
   <nav>
     <ul class="pagination justify-content-center" >
