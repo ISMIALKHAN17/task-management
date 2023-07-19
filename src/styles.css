@@ -958,6 +958,36 @@ select {
     font-size: 12px;
   }
 }
+@media only screen and (min-width: 0px) and (max-width: 1400px) {
+  .table_wrap {
+    overflow-x: scroll;
+    margin-bottom: 10px;
+}
+
+.table_wrap table {
+    width: 1189px;
+}
+}
+
+
+.table_wrap::-webkit-scrollbar-track
+{
+	border-radius: 10px;
+	background-color: #eef2ff;
+}
+
+.table_wrap::-webkit-scrollbar
+{
+	width: 12px;
+	background-color: #eef2ff;
+  border-radius: 10px;
+}
+
+.table_wrap::-webkit-scrollbar-thumb
+{
+	border-radius: 10px;
+	background-color: #a0b5fa;
+}
 
 
 .filter {

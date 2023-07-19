@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -7,7 +8,8 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-clients',
   templateUrl: './clients.component.html',
-  styleUrls: ['./clients.component.css']
+  styleUrls: ['./clients.component.css'],
+  providers:[DatePipe]
 })
 export class ClientsComponent {
   clientForm:any
@@ -18,10 +20,11 @@ export class ClientsComponent {
   pagination:any = []
   paginationData:any
   searchTerm:any = []
+  tasks: any[] = [];
   isAscending: boolean = true; // Flag to track the sort order
 sortColumn: string = ''; // Track the currently sorted column
 
-  constructor(private modalService: NgbModal , private req:RequestService) {
+  constructor(private modalService: NgbModal , private req:RequestService,private datePipe:DatePipe) {
     // Constructor logic here
   }
 
@@ -29,7 +32,10 @@ sortColumn: string = ''; // Track the currently sorted column
     this.modalService.open(modal,{centered:true})
   }
 
-
+  formatDate(date: string): string {
+    const formattedDate = this.datePipe.transform(date, 'MM/dd/yyyy');
+    return formattedDate || '';
+  }
 
 
   ngOnInit() {
@@ -233,4 +239,16 @@ sortClients(column: string) {
       this.loading = false
     })
   }
+
+
+  fetchClientTasks(modal:any , id:any){
+    this.loading = true
+    this.open(modal)
+    this.req.post('task/find',{id:id}).subscribe((res:any)=>{
+      this.loading = false
+      this.tasks = res.data
+      console.log(this.tasks.length)
+    })
+  }
+
 }

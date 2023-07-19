@@ -101,9 +101,14 @@ sortColumn: string = ''; // Track the currently sorted column
     if(this.filterType == 'date'){
       // Make sure to replace 'start-date here' and 'end date here' with the actual values from the inputs
       this.req.post('task/report', { startDate: this.startDate, endDate: this.endDate }).subscribe((res: any) => {
-        this.tasks = res.data
         this.loading = false
-        // Handle the API response here
+        this.tasks = res.data
+        this.pagination = []
+          for(let i = 1; i <= res.last_page ; i++){
+          this.pagination.push(i)
+          }
+          this.paginationData = res
+          this.loading = false
       });
     }else{
       this.loading = true
@@ -116,7 +121,6 @@ sortColumn: string = ''; // Track the currently sorted column
           }
           this.paginationData = res
           this.loading = false
-          console.log(this.tasks)
       })
     }
   }

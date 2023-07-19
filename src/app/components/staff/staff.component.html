@@ -9,6 +9,7 @@
     <div class="filter">
       <input type="text" (keyup.enter)="searchTasks()" [(ngModel)]="searchTerm" placeholder="Search">
     </div>
+  <div class="table_wrap">
     <table class="table table-striped">
       <thead>
         <tr>
@@ -38,6 +39,7 @@
         </tr>
       </tbody>
     </table>
+  </div>
 
 <div class="pagination d-flex justify-content-center" *ngIf="paginationData.last_page > 1">
   <nav>

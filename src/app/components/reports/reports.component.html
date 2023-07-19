@@ -7,10 +7,7 @@
   </div>
   <div class="container">
     <div class="row ">
-      <div class="col-md-8">
-        <div class="card">
-          <div class="card-body">
-            <h2>Task List</h2>
+      <div class="col-md-12">
             <div class="row ">
               <div class="col-md-3">
                 <div class="form-group">
@@ -46,29 +43,40 @@
                 <button class="btn btn-primary" (click)="dateFilter()">Search</button>
               </div>
             </div>
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th class="pointerC" (click)="sortTasks('client.name')">Client Name <i class="fas fa-sort" [ngClass]="{'fa-sort-up': isAscending && sortColumn === 'client.name', 'fa-sort-down': !isAscending && sortColumn === 'client.name'}"></i></th>
-                  <th class="pointerC" (click)="sortTasks('created_at')">Assigned Date <i class="fas fa-sort" [ngClass]="{'fa-sort-up': isAscending && sortColumn === 'created_at', 'fa-sort-down': !isAscending && sortColumn === 'created_at'}"></i></th>
-                  <th class="pointerC" (click)="sortTasks('dueDate')">Due Date <i class="fas fa-sort" [ngClass]="{'fa-sort-up': isAscending && sortColumn === 'dueDate', 'fa-sort-down': !isAscending && sortColumn === 'dueDate'}"></i></th>
-                  <th class="pointerC" (click)="sortTasks('name')">Task Name <i class="fas fa-sort" [ngClass]="{'fa-sort-up': isAscending && sortColumn === 'name', 'fa-sort-down': !isAscending && sortColumn === 'name'}"></i></th>
-                  <th class="pointerC" >Status </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let task of tasks; index as i">
-                  <td>{{ i + 1 }}</td>
-                  <td>{{ task.client.name }}</td>
-                  <td>{{ formatDate(task.created_at) }}</td>
-                  <td>{{ formatDate(task.dueDate) }}</td>
-                  <td>{{ task.name }}</td>
-                  <td>{{ task.status }}</td>
-                </tr>
-              </tbody>
-            </table>
 
+            <div class="table_wrap">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th  class="pointerC" (click)="sortTasks('client.name')">Client Name <i class="fas fa-sort" [ngClass]="{'fa-sort-up': isAscending && sortColumn === 'client.name', 'fa-sort-down': !isAscending && sortColumn === 'client.name'}"></i></th>
+                    <th class="pointerC" (click)="sortTasks('created_at')">Assigned Date <i class="fas fa-sort" [ngClass]="{'fa-sort-up': isAscending && sortColumn === 'created_at', 'fa-sort-down': !isAscending && sortColumn === 'created_at'}"></i></th>
+                    <th class="pointerC" (click)="sortTasks('dueDate')">Due Date <i class="fas fa-sort" [ngClass]="{'fa-sort-up': isAscending && sortColumn === 'dueDate', 'fa-sort-down': !isAscending && sortColumn === 'dueDate'}"></i></th>
+                    <th class="pointerC" (click)="sortTasks('name')">Task Name <i class="fas fa-sort" [ngClass]="{'fa-sort-up': isAscending && sortColumn === 'name', 'fa-sort-down': !isAscending && sortColumn === 'name'}"></i></th>
+                    <th class="pointerC" >Status </th>
+                    <th class="pointerC" >Date E-Filed </th>
+                    <th class="pointerC" >Date Mailed </th>
+                    <th class="pointerC" >Date Completed </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let task of tasks; index as i">
+                    <td>{{ i + 1 }}</td>
+                    <td>{{  task.client.name.length > 10 ? task.client.name.slice(0, 10) + '...' : task.client.name }}</td>
+                    <td>{{ formatDate(task.created_at) }}</td>
+                    <td>{{ formatDate(task.dueDate) }}</td>
+                    <td>{{ task.name }}</td>
+                    <td>{{ task.status }}</td>
+                    <td *ngIf="task.dateFiled === 'Not added'">Not added</td>
+                    <td *ngIf="task.dateFiled !== 'Not added'">{{formatDate(task.dateFiled)}}</td>
+                    <td *ngIf="task.dateMailed === 'Not added'">Not added</td>
+                    <td *ngIf="task.dateMailed !== 'Not added'">{{formatDate(task.dateMailed)}}</td>
+                    <td *ngIf="task.dateCompleted === 'Not added'">Not added</td>
+                    <td *ngIf="task.dateCompleted !== 'Not added'">{{formatDate(task.dateCompleted)}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <div class="pagination d-flex justify-content-center" *ngIf="paginationData.last_page > 1">
               <nav>
                 <ul class="pagination justify-content-center" >
@@ -90,19 +98,12 @@
                 </ul>
               </nav>
             </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h2>Task Summary</h2>
-<canvas #chartCanvasRef height="300" width="400"></canvas>
-          </div>
-        </div>
+
       </div>
     </div>
 
     <!-- Rest of the code -->
   </div>
 </div>
+
+

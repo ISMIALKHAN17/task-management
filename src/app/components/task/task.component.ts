@@ -111,6 +111,7 @@ export class TaskComponent {
       }
       this.paginationData = res.data
       this.loading = false
+      this.sortTasks('dueDate');
       this.uniqueTaskNames = this.getUniqueTaskNames(this.tasks);
     })
   }
@@ -523,24 +524,6 @@ disableTask(task: any, status: any) {
   // Function to handle the task status update
   const updateTaskStatus = () => {
     this.loading = true;
-    if (taskStatus === 'Disabled') {
-      this.req.post('task/modify', { type: task.type, status: taskStatus, dueDate: task.dueDate }).subscribe(
-        (res: any) => {
-          this.loading = false;
-          this.getClients();
-          this.getStaff();
-          this.getTasks();
-        },
-        (error: any) => {
-          console.error('Error updating task:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to update task. Please try again later.'
-          });
-        }
-      );
-    } else {
       this.req.post('task/update', { id: task.id, status: taskStatus }).subscribe(
         (res: any) => {
           this.loading = false;
@@ -549,6 +532,7 @@ disableTask(task: any, status: any) {
           this.getTasks();
         },
         (error: any) => {
+          this.loading = false;
           console.error('Error updating task:', error);
           Swal.fire({
             icon: 'error',
@@ -557,7 +541,7 @@ disableTask(task: any, status: any) {
           });
         }
       );
-    }
+
   };
 
   Swal.fire({

@@ -1,0 +1,23 @@
+.client_tasks{
+  height: 80vh;
+  overflow-y: scroll;
+}
+
+.client_tasks::-webkit-scrollbar-track
+{
+	border-radius: 10px;
+	background-color: #eef2ff;
+}
+
+.client_tasks::-webkit-scrollbar
+{
+	width: 12px;
+	background-color: #eef2ff;
+  border-radius: 10px;
+}
+
+.client_tasks::-webkit-scrollbar-thumb
+{
+	border-radius: 10px;
+	background-color: #a0b5fa;
+}
