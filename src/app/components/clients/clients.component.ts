@@ -42,6 +42,8 @@ sortColumn: string = ''; // Track the currently sorted column
     this.getClients()
     this.clientForm = new FormGroup({
       name: new FormControl('', [Validators.required]),
+      contactName: new FormControl('', [Validators.required]),
+      title: new FormControl('', [Validators.required]),
       description: new FormControl('', [Validators.required]),
       address: new FormControl('', [Validators.required]),
       phoneNumber: new FormControl('', [Validators.required, Validators.pattern(/^\d{10}$/)]),

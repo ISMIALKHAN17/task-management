@@ -18,6 +18,8 @@
             <th class="pointerC" scope="col" (click)="sortClients('email')">Email</th>
             <th class="pointerC" scope="col" (click)="sortClients('phoneNumber')">Phone number</th>
             <th class="pointerC" scope="col" (click)="sortClients('address')">Address</th>
+            <th class="pointerC" scope="col" (click)="sortClients('contactName')">Contact Name</th>
+            <th class="pointerC" scope="col" (click)="sortClients('title')">Title</th>
             <th scope="col">Action</th>
           </tr>
         </thead>
@@ -28,6 +30,8 @@
             <td>{{ client.email }}</td>
             <td>{{ client.phoneNumber }}</td>
             <td>{{ client.address }}</td>
+            <td>{{ client.contactName }}</td>
+            <td>{{ client.title }}</td>
             <td>
               <ul class="actions m-0 d-flex gap-2">
                 <li><i class="far fa-eye" (click)="viewClient(addStaff, client)" data-toggle="tooltip" title="View"></i></li>
@@ -96,6 +100,24 @@
           <input type="text" class="form-control" formControlName="address" [ngClass]="{ 'is-invalid': clientForm.get('address').invalid && clientForm.get('address').touched }">
           <div class="invalid-feedback" *ngIf="clientForm.get('address').errors && clientForm.get('address').touched">
             Client Address is required.
+          </div>
+        </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-2">
+          <label for="title">Title:</label>
+          <input type="text" class="form-control" formControlName="title" [ngClass]="{ 'is-invalid': clientForm.get('title').invalid && clientForm.get('title').touched }">
+          <div class="invalid-feedback" *ngIf="clientForm.get('title').errors && clientForm.get('title').touched">
+            Title is required.
+          </div>
+        </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group mb-2">
+          <label for="contactName">Contact Name:</label>
+          <input type="text" class="form-control" formControlName="contactName" [ngClass]="{ 'is-invalid': clientForm.get('contactName').invalid && clientForm.get('contactName').touched }">
+          <div class="invalid-feedback" *ngIf="clientForm.get('contactName').errors && clientForm.get('contactName').touched">
+            Contact Name is required.
           </div>
         </div>
         </div>

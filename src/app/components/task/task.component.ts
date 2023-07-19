@@ -502,7 +502,7 @@ searchTasks(){
       }
       this.paginationData = res.data
       this.loading = false
-      console.log(this.tasks)
+      
   })
 }
 

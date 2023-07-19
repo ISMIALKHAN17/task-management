@@ -35,9 +35,7 @@ sortColumn: string = ''; // Track the currently sorted column
       }
       this.paginationData = res
       this.loading = false
-      setTimeout(() => {
-        this.initializeChart();
-      }, 100);
+   
     })
 
     this.req.post('task/count',true).subscribe((res:any)=>{
@@ -47,39 +45,7 @@ sortColumn: string = ''; // Track the currently sorted column
 
 
 
-  initializeChart(): void {
-    const data = [this.chartData.Completed, this.chartData.Due,this.chartData.Incomplete,this.chartData.Disabled]; // Replace with your actual data
-    const canvas = this.chartCanvasRef.nativeElement;
-    const context = canvas.getContext('2d');
-
-    if (!context) {
-      console.error('Canvas context not available');
-      return;
-    }
-
-    this.chart = new Chart(context, {
-      type: 'pie',
-      data: {
-        labels: ['Completed ', 'Due' ,'Incomplete','Disabled'], // Replace with your actual labels
-        datasets: [{
-          data: data,
-          backgroundColor: ['#28a745', '#ffc107','#dc3545','#6c757d'] // Replace with your actual colors
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-          title: {
-            display: false,
-          }
-        }
-      }
-    });
-
-  }
+ 
 
   filterType: string = 'date';
   startDate: string = '';
@@ -127,13 +93,13 @@ sortColumn: string = ''; // Track the currently sorted column
 
   taskPaginantion(page:any){
     this.loading = true
-    this.req.post(`task/list?page=${page}`,{user_id:this.user.id}).subscribe((res:any)=>{
-      this.tasks = res.data.data
+    this.req.post(`task/report?page=${page}`,{user_id:this.user.id}).subscribe((res:any)=>{
+      this.tasks = res.data
       this.pagination = []
-      for(let i = 1; i <= res.data.last_page ; i++){
+      for(let i = 1; i <= res.last_page ; i++){
       this.pagination.push(i)
       }
-      this.paginationData = res.data
+      this.paginationData = res
       this.loading = false
       console.log(this.tasks)
     })
@@ -144,26 +110,75 @@ sortColumn: string = ''; // Track the currently sorted column
     return formattedDate || '';
   }
 
-  sortTasks(column: string) {
-    if (this.sortColumn === column) {
-      this.isAscending = !this.isAscending; // Toggle the sort order if it's the same column
-    } else {
-      this.sortColumn = column;
-      this.isAscending = true; // Reset the sort order if it's a different column
-    }
+ 
+sortTasks(column: string) {
+  if (this.sortColumn === column) {
+    this.isAscending = !this.isAscending; // Toggle the sort order if it's the same column
+  } else {
+    this.sortColumn = column;
+    this.isAscending = true; // Set the initial sort order to ascending for a different column
+  }
 
-    // Perform the sorting using the Array sort method
-    this.tasks = this.tasks.sort((a: any, b: any) => {
-      if (a[column] > b[column]) {
+  // Perform the sorting
+  if (column === 'status') {
+    this.tasks = this.sortTasksByStatusAndDueDate(this.tasks);
+  } else {
+    this.tasks = this.tasks.sort((a:any, b:any) => {
+      const valA = this.getPropertyValue(a, column);
+      const valB = this.getPropertyValue(b, column);
+
+      if (valA > valB) {
         return this.isAscending ? 1 : -1;
-      } else if (a[column] < b[column]) {
+      } else if (valA < valB) {
         return this.isAscending ? -1 : 1;
       } else {
         return 0;
       }
     });
   }
+}
 
+
+// Helper function to get the property value of an object dynamically
+getPropertyValue(obj: any, path: string) {
+  const properties = path.split('.');
+  let value = obj;
+
+  for (const prop of properties) {
+    value = value[prop];
+
+    if (typeof value === 'undefined') {
+      break;
+    }
+  }
+
+  return value;
+}
+
+// Function to sort tasks by status and due date
+sortTasksByStatusAndDueDate(tasks: any[]): any[] {
+  return tasks.sort((a, b) => {
+    // Sort by status (incomplete tasks first)
+    if (a.status !== 'Completed' && b.status === 'Completed') {
+      return -1;
+    }
+    if (a.status === 'Completed' && b.status !== 'Completed') {
+      return 1;
+    }
+    if (a.status === 'Disabled' && b.status !== 'Disabled') {
+      return 1;
+    }
+    if (a.status !== 'Disabled' && b.status === 'Disabled') {
+      return -1;
+    }
+
+    // Sort by due date
+    const dateA = new Date(a.dueDate);
+    const dateB = new Date(b.dueDate);
+    return dateA.getTime() - dateB.getTime();
+  });
+}
+  
 }
 
 interface Task {
